@@ -46,11 +46,13 @@ withPython("daemon_ipc transport", () => {
 
 describe("retrieval scripts are AF_UNIX-free outside the transport module", () => {
   // Comments are stripped first: the daemons legitimately EXPLAIN the AF_UNIX/Windows
-  // split in prose, and only executable uses reintroduce the bug.
+  // split in prose, and only executable uses reintroduce the bug. Split on CRLF too: a
+  // Windows checkout leaves `\r` on each line, which `.` cannot match, so `#.*$` would
+  // miss every comment and report prose mentions as code.
   const codeOf = (f: string): string =>
     fs
       .readFileSync(path.join(SCRIPTS, f), "utf8")
-      .split("\n")
+      .split(/\r?\n/)
       .map((l) => l.replace(/#.*$/, ""))
       .join("\n");
 

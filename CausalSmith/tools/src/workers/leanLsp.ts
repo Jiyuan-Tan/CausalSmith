@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { McpClient, type McpClientOpts } from "./mcp.js";
 import { spawnWithInactivityTimeout } from "./spawn.js";
-import { localConfig, leanProjectPathFor } from "../local_config.js";
+import { bashBinary, localConfig, leanProjectPathFor } from "../local_config.js";
 import { withLakeBuildLock } from "../shared/build_mutex.js";
 
 // ---------------------------------------------------------------------------
@@ -489,7 +489,7 @@ export class CliLeanLspClient implements LeanLspClient {
   async diagnostics(file: string): Promise<LeanDiagnostic[]> {
     const rel = this.rel(file);
     const result = await spawnWithInactivityTimeout(
-      "bash",
+      bashBinary(),
       ["-lc", `lake env lean --json ${shellQuote(rel)}`],
       { cwd: this.repoRoot, env: process.env, inactivityTimeoutMs: 5 * 60 * 1000 },
     );
@@ -566,7 +566,7 @@ export class CliLeanLspClient implements LeanLspClient {
     const safe = query.replace(/[^\w.]/g, "");
     if (!safe) return [];
     const result = await spawnWithInactivityTimeout(
-      "bash",
+      bashBinary(),
       [
         "-lc",
         `grep -R --line-number --include='*.lean' ${shellQuote(safe)} CausalSmith Causalean | head -n ${Number(limit)}`,

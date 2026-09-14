@@ -152,6 +152,16 @@ export function localConfig(): LocalConfig {
   return cached;
 }
 
+/**
+ * The `bash` program every pipeline subprocess must spawn. On Windows a bare
+ * `bash` resolves to WSL's `System32\bash.exe` (or nothing), not git-bash, so
+ * the configured `gitBashPath` wins there; elsewhere it is PATH `bash`.
+ */
+export function bashBinary(): string {
+  const configured = localConfig().gitBashPath;
+  return process.platform === "win32" && configured ? configured : "bash";
+}
+
 /** Lean-lsp project root: the configured override, else the run's repoRoot. */
 export function leanProjectPathFor(repoRoot: string): string {
   return localConfig().leanProjectPath || repoRoot;

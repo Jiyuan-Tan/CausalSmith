@@ -28,6 +28,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { withLakeBuildLock } from "../shared/build_mutex.js";
 import { spawnWithInactivityTimeout } from "../workers/spawn.js";
+import { bashBinary } from "../local_config.js";
 import { runCodex as realRunCodex } from "../shared/codex.js";
 import { expectStringJsonOutput, persistCodexRaw } from "../shared/codex_json.js";
 import { causaleanRoot } from "./paths.js";
@@ -125,7 +126,7 @@ const realApplyDeps: CoordinateApplyDeps = {
       // re-run nvm initialization while npm_config_prefix is set by `npx
       // --prefix tools`, leaving npm unavailable for the post-build embedding
       // steps even though it launched this pipeline successfully.
-      const r = await spawnWithInactivityTimeout("bash", ["-c", cmd], {
+      const r = await spawnWithInactivityTimeout(bashBinary(), ["-c", cmd], {
         cwd, env, inactivityTimeoutMs: 30 * 60 * 1000, maxTotalMs,
       });
       const log = [r.stdout, r.stderr].filter(Boolean).join("\n");

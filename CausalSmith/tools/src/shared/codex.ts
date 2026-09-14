@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { spawnWithInactivityTimeout } from "../workers/spawn.js";
 import { codexHome, redactSecrets, resolveProviderAuth, workerEnv } from "../auth.js";
 import {
+  bashBinary,
   localConfig,
   leanProjectPathFor,
   type LocalConfig,
@@ -504,7 +505,7 @@ export async function runCodex(input: CodexRunInput): Promise<{ stdout: string; 
   const script = `${setup} && ${cmd}`;
 
   const promptWithMarker = `${input.prompt}\n\n[${marker}] — machine tag for run-liveness tracking; ignore.`;
-  return await spawnWithInactivityTimeout("bash", ["-lc", script], {
+  return await spawnWithInactivityTimeout(bashBinary(), ["-lc", script], {
     cwd: input.cwd,
     // Carries OPENAI_API_KEY + the dedicated CODEX_HOME in api mode; identical
     // to process.env otherwise.
