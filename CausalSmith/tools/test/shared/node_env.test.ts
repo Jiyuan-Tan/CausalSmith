@@ -16,6 +16,7 @@ import { mkdtemp, rm, writeFile, chmod, mkdir } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { bashBinary } from "../../src/local_config.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -39,7 +40,7 @@ async function runResolver(env: NodeJS.ProcessEnv): Promise<{
     echo "VERSION=$(node -v 2>/dev/null)"
     exit 0
   `;
-  const { stdout, stderr } = await execFileAsync("bash", ["-c", script], { env });
+  const { stdout, stderr } = await execFileAsync(bashBinary(), ["-c", script], { env });
   const field = (k: string) => new RegExp(`^${k}=(.*)$`, "m").exec(stdout)?.[1] ?? "";
   return {
     code: Number(field("RC")),
@@ -161,7 +162,7 @@ describe("scripts/node_env.sh", () => {
         echo "PREFIX=[\${npm_config_prefix:-unset}]"
         exit 0
       `;
-      const { stdout } = await execFileAsync("bash", ["-c", script], {
+      const { stdout } = await execFileAsync(bashBinary(), ["-c", script], {
         env: {
           PATH: "/usr/bin:/bin",
           HOME: path.join(tmp, "home-without-nvm"),
@@ -178,7 +179,7 @@ describe("scripts/node_env.sh", () => {
   });
 
   it("reads the floor from package.json rather than hardcoding it", async () => {
-    const { stderr } = await execFileAsync("bash", ["-c", `source ${JSON.stringify(SCRIPT)}`], {
+    const { stderr } = await execFileAsync(bashBinary(), ["-c", `source ${JSON.stringify(SCRIPT)}`], {
       env: { ...process.env, CAUSALSMITH_NODE_ENV_VERBOSE: "1" },
     });
     const pkg = JSON.parse(

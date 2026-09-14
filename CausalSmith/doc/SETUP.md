@@ -19,6 +19,7 @@ environment variables — never hardcoded.
 | `codex` CLI (OpenAI) | Discovery + proof agents | Default models `gpt-5.x` (see "Models" below). Billed to the CLI's own login unless you configure api auth (see "Who pays" below). |
 | `claude` CLI (Anthropic) | Reviewer / judge agents | Same: billed to the CLI's stored login by default; an API key is an opt-in alternative, not a requirement. |
 | Python 3 + `sentence-transformers` | Retrieval embeddings (optional) | Only for `npm run embed:library` / semantic search. |
+| [`pandoc`](https://pandoc.org/installing.html) + `latexmk` (from a TeX distribution: TeX Live, MacTeX, or MiKTeX) | Presentation pipeline (`causalsmith present`) | P4 renders the paper body with pandoc and compiles the PDF with latexmk. `present` checks both at startup and stops with install instructions; `research` needs neither. MiKTeX's latexmk also needs Perl. |
 
 Build the Lean packages first (the pipeline pre-warms Lean modules):
 
@@ -163,7 +164,9 @@ Three behaviours worth knowing before you switch:
   `-c windows.sandbox=unelevated` (ignored on other OSes). The pipeline's codex
   invocations already include this.
 - Set `gitBashPath` in `local.json` (forward slashes, e.g.
-  `C:/Program Files/Git/bin/bash.exe`).
+  `C:/Program Files/Git/bin/bash.exe`). Every bash the pipeline starts uses it.
+- `npm run check:setup` (in `tools/`) warns when `core.longpaths` is off, when
+  `gitBashPath` is unset or points nowhere, and when `pandoc` or `latexmk` is missing.
 - Semantic retrieval works on Windows exactly as on Linux/macOS, warm daemon
   included. The daemons pick their transport in `tools/scripts/daemon_ipc.py`: a
   unix-domain socket on POSIX, a loopback TCP port on Windows (CPython exposes no
@@ -215,5 +218,6 @@ it requires re-running `npm run embed:library`.
 
 ```sh
 cd CausalSmith/tools
+npm run check:setup                         # warns about machine setup: long paths + git-bash (Windows), pandoc, latexmk
 npm run search -- "backdoor adjustment"     # retrieval over doc/library_index.json
 ```

@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnWithInactivityTimeout } from "../src/workers/spawn.js";
+import { bashBinary } from "../src/local_config.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.join(HERE, "fixtures", "spawn_held_pipe.mts");
@@ -93,7 +94,7 @@ describe("spawnWithInactivityTimeout", () => {
     // wall-clock cap is what must fire. A tight loop stands in for that here.
     const start = Date.now();
     const r = await spawnWithInactivityTimeout(
-      "bash",
+      bashBinary(),
       ["-lc", "while true; do echo tick; sleep 0.2; done"],
       { inactivityTimeoutMs: 60_000, maxTotalMs: 2_000 },
     );
@@ -104,7 +105,7 @@ describe("spawnWithInactivityTimeout", () => {
   }, 30_000);
 
   it("still reports a genuine nonzero exit", async () => {
-    const r = await spawnWithInactivityTimeout("bash", ["-lc", "echo boom; exit 3"], {
+    const r = await spawnWithInactivityTimeout(bashBinary(), ["-lc", "echo boom; exit 3"], {
       inactivityTimeoutMs: 10_000,
     });
     expect(r.exitCode).toBe(3);

@@ -158,8 +158,10 @@ export function localConfig(): LocalConfig {
  * the configured `gitBashPath` wins there; elsewhere it is PATH `bash`.
  */
 export function bashBinary(): string {
-  const configured = localConfig().gitBashPath;
-  return process.platform === "win32" && configured ? configured : "bash";
+  // Platform first: off Windows the config is never read, so an unrelated invalid
+  // setting (e.g. MCP_TIMEOUT) cannot break a plain bash spawn.
+  if (process.platform !== "win32") return "bash";
+  return localConfig().gitBashPath || "bash";
 }
 
 /** Lean-lsp project root: the configured override, else the run's repoRoot. */

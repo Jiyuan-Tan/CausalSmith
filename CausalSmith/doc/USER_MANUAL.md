@@ -69,6 +69,7 @@ CausalSmith/
 | Lake | bundled with Lean | Build orchestration |
 | Node.js | ≥ `20.20.2` (the `engines.node` floor; 22.x verified) | TypeScript pipeline runtime — `source tools/scripts/node_env.sh` selects a satisfying install; an older default shell node fails silently |
 | Codex CLI | latest | Pipeline worker/reviewer dispatch for D-1 / D0 / F2 / F3 / F4 / F5 |
+| pandoc + latexmk | any recent; latexmk from a TeX distribution | `causalsmith present` only — P4 renders the HTML body and compiles the PDF |
 
 ```bash
 source tools/scripts/node_env.sh
@@ -292,6 +293,8 @@ npx tsx bin/causalsmith.ts present <qid> <spec> --stop-after P1
 npx tsx bin/causalsmith.ts present <qid> <spec> --auto --from P1   # re-enter a stage; --auto decides checkpoints itself
 npx tsx bin/causalsmith.ts present <qid> <spec> --from P6           # slides, outside the P0–P5 loop
 ```
+
+`pandoc` and `latexmk` must be on `PATH`. The command checks both before P0 and stops with install instructions if either is missing (`--dry-run` and `--from P6` skip the check); `npm run check:setup` runs the same check on its own.
 
 Stages: P0 builds a *verified* citation pool (retrieve-before-write; entries checked against Crossref/arXiv, unverifiable ones dropped) and a related-work brief. P1 generates the **frozen formal layer** — one `theoremv/assumptionv/lemmav/definitionv` environment per note object, obj_id-anchored, rendered once and repaired only on a judge's defect (a codex notation reviewer for symbol resolvability, a Lean-fidelity judge for statement equivalence), ordered deterministically (outline order, definitions before first use) — plus `outline.md` (valid authored homes are retained, including after correctly placed helper promotions); halts at the **outline checkpoint**. P2 drafts body sections (opus) and Lean-faithful appendix proofs (codex + lean-lsp), writes abstract/intro last; halts at the **draft checkpoint**. P3 runs the whole-paper hard gates (overclaiming, citation pool + support, anchor/frozen lint) with a ≤2-round revise loop, then an advisory rubric ensemble (statement equivalence is judged at P1, proof faithfulness at P2). Its prose revisions exclude protected proofs and validate each patch before source propagation. An optional rubric edit that changes no editable prose leaves findings for operator/P5 review; hard-gate failures still block. P4 re-verifies citations, compiles the PDF, and emits the bundle: `presentation_crosswalk.json`, `lean_snippets.json`, `paper_body.html`, `assumption_table.md`, `meta.json` (all under `doc/presentation/<qid>_<spec>/`). P5 sends the compiled paper to a codex referee, writing `p5_review.{json,md}` and routing findings in `p5_revision_routing.md` for hand revision — there is no automatic reviser pass. P6 (slides) sits outside the P0–P5 loop: run it with `--from P6` once P5 has settled. Other flags: `--promote-again`, `--refresh-frozen-bodies` (see the usage string in `tools/src/presentation/cli.ts`).
 

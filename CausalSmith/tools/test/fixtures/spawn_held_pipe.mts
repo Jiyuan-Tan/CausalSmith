@@ -11,6 +11,7 @@
 // argv[5] = maxTotalMs (optional wall-clock cap).
 import { writeFileSync } from "node:fs";
 import { spawnWithInactivityTimeout } from "../../src/workers/spawn.js";
+import { bashBinary } from "../../src/local_config.js";
 
 const cmd = process.argv[2] ?? "sleep 15 & echo done; exit 0";
 const inactivityTimeoutMs = Number(process.argv[3] ?? 10_000);
@@ -18,7 +19,7 @@ const outPath = process.argv[4];
 const maxTotalMs = process.argv[5] ? Number(process.argv[5]) : undefined;
 
 const t = Date.now();
-const r = await spawnWithInactivityTimeout("bash", ["-lc", cmd], { inactivityTimeoutMs, maxTotalMs });
+const r = await spawnWithInactivityTimeout(bashBinary(), ["-lc", cmd], { inactivityTimeoutMs, maxTotalMs });
 writeFileSync(
   outPath,
   JSON.stringify({

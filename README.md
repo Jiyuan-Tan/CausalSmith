@@ -130,7 +130,11 @@ the library is large, and `npm run search` is the intended entry point for
 locating a definition, lemma, or module. Everything above needs only this clone —
 no API keys, no sibling checkouts, no credentials; the only network access is to
 Mathlib's cache and this repository's release assets. (Running the theorem-generation pipeline is
-the one part that needs model access — see below.)
+the one part that needs model access — see below.) Turning an accepted result into a paper
+(`causalsmith present`) also needs [`pandoc`](https://pandoc.org/installing.html) and a TeX
+distribution with `latexmk` (TeX Live, MacTeX, or MiKTeX) on `PATH`; `present` checks for both
+before it starts. `cd CausalSmith/tools && npm run check:setup` warns about any of these, and
+on Windows about the long-path setting below.
 
 Then, depending on what you came for:
 
@@ -149,6 +153,7 @@ Then, depending on what you came for:
   nested clone directory or the Lean build tree can still approach Windows'
   260-character limit, so enabling long paths once is recommended:
   `git config --global core.longpaths true` (or `git clone -c core.longpaths=true …`).
+  `npm run check:setup` warns while it is off.
 - **Windows — shell and tools.** Use Git Bash for the commands above. `curl` and
   `tar` ship with Git for Windows; put `zstd.exe` on `PATH` for the cache scripts.
   Install elan with `elan-init.exe` from the
