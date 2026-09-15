@@ -26,10 +26,11 @@ shares the project's name:
   LLM-driven pipeline that proposes and formally verifies new causal-inference
   theorems on top of Causalean. Causalean never imports CausalSmith.
 
-> This repository is a periodically synced snapshot of an internal development
-> repo: history arrives as squashed sync commits, and process/working material is
-> not included. Issues are welcome; for substantial contributions please open an
-> issue first so changes can be coordinated with the internal tree.
+> **Contributions are welcome.** Please open an
+> [issue](https://github.com/Jiyuan-Tan/CausalSmith/issues) for bugs, questions, or
+> ideas, and send a pull request for fixes, new lemmas, or documentation. For larger
+> changes (new modules, pipeline behaviour), opening an issue first to agree on the
+> approach saves rework.
 
 ## Using the pipeline in three steps
 
