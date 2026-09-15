@@ -86,14 +86,29 @@ async function readError(res: Response): Promise<string> {
   return `HTTP ${res.status}`;
 }
 
-/** Read every rating on a paper. Anonymous — no token involved. */
-export async function listRatings(worker: string, paper: string): Promise<RatingRow[]> {
-  const res = await fetch(`${worker}/api/ratings?paper=${encodeURIComponent(paper)}`, {
-    credentials: "omit",
-  });
+/** Reads in flight, by URL. The byline stars and the Proof map both load the
+ *  paper's ratings as the page boots, and every read costs the worker a KV
+ *  prefix list; concurrent callers share one request. An entry leaves when its
+ *  request settles, so nothing is cached and a later call always refetches. */
+const inFlight = new Map<string, Promise<RatingRow[]>>();
+
+async function fetchRatings(url: string): Promise<RatingRow[]> {
+  const res = await fetch(url, { credentials: "omit" });
   if (!res.ok) throw new Error(await readError(res));
   const data = (await res.json()) as { ratings?: unknown };
   return shapeAll(data.ratings);
+}
+
+/** Read every rating on a paper. Anonymous — no token involved. */
+export async function listRatings(worker: string, paper: string): Promise<RatingRow[]> {
+  const url = `${worker}/api/ratings?paper=${encodeURIComponent(paper)}`;
+  let pending = inFlight.get(url);
+  if (!pending) {
+    pending = fetchRatings(url).finally(() => inFlight.delete(url));
+    inFlight.set(url, pending);
+  }
+  // A copy per caller: each widget edits its own rows after a write.
+  return (await pending).slice();
 }
 
 /** The worker refuses a `?papers=` list longer than this; batch to match. */
