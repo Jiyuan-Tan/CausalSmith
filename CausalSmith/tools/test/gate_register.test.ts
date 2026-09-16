@@ -12,6 +12,8 @@ import type { FormalizationGraph, GraphNode } from "../src/graph/types.js";
 
 const exec = promisify(execFile);
 const __TOOLS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Always launched as `node <cli.mjs>`: a bare `.mjs` path is not executable on
+// Windows, and the `node_modules/.bin/tsx` shim is a `.cmd` execFile cannot spawn.
 const TSX_CLI = path.resolve(__TOOLS_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
 const GATE = path.resolve(__TOOLS_ROOT, "bin", "gate.ts");
 
@@ -35,7 +37,7 @@ const node = (id: string, kind: GraphNode["kind"]): GraphNode => ({
 });
 
 function gate(args: string[]): Promise<{ stdout: string; stderr: string }> {
-  return exec(TSX_CLI, [GATE, QID, SPEC, ...args], { cwd: repoRoot, env: { ...process.env } });
+  return exec(process.execPath, [TSX_CLI, GATE, QID, SPEC, ...args], { cwd: repoRoot, env: { ...process.env } });
 }
 
 async function seedLeanDecl(

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join, relative, sep } from "node:path";
 import { writeJsonAtomic } from "./json_io.js";
 
 const MANIFEST = "p2_assembly_manifest.json";
@@ -16,6 +16,25 @@ export async function texFilesUnder(outDir: string, dirs: string[]): Promise<str
 }
 
 /**
+ * Drop every CR that immediately precedes an LF, operating on BYTES.
+ *
+ * Returns the very same buffer when there is no CR at all, so a pure-LF file hashes
+ * byte-for-byte as it always has — including any byte sequence that is not valid
+ * UTF-8, which a `toString("utf8")` round-trip would silently replace and thereby
+ * change a persisted digest. A CRLF checkout then hashes identically to its LF twin.
+ */
+function stripCrBeforeLf(buf: Buffer): Buffer {
+  if (!buf.includes(0x0d)) return buf;
+  const out = Buffer.allocUnsafe(buf.length);
+  let n = 0;
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] === 0x0d && buf[i + 1] === 0x0a) continue;
+    out[n++] = buf[i];
+  }
+  return out.subarray(0, n);
+}
+
+/**
  * sha256 over `(label \0 bytes \0)` per path. `base` relativizes the label (so the
  * digest is location-independent and safe to persist); without it the absolute path
  * is the label (fine for same-process before/after comparison only). Missing files
@@ -27,9 +46,18 @@ export async function digestPaths(
 ): Promise<string> {
   const hash = createHash("sha256");
   for (const path of paths) {
-    hash.update(opts.base ? relative(opts.base, path) : path);
+    // Both halves are normalized so the digest identifies the CONTENT, not the host
+    // that recorded it: the label would otherwise carry `\` on Windows, and the bytes
+    // would carry CRLF (`.gitattributes` pins only *.sh and lean-toolchain to LF).
+    // Either one makes a Linux-recorded manifest mismatch on a Windows checkout and
+    // blocks every emit with a false "sources changed after assembly". Both are
+    // no-ops on POSIX with LF sources, so existing manifests keep their digest.
+    hash.update(opts.base ? relative(opts.base, path).split(sep).join("/") : path);
     hash.update("\0");
-    hash.update(opts.missingAsEmpty ? await readFile(path).catch(() => Buffer.from("")) : await readFile(path));
+    const bytes = opts.missingAsEmpty
+      ? await readFile(path).catch(() => Buffer.from(""))
+      : await readFile(path);
+    hash.update(stripCrBeforeLf(bytes));
     hash.update("\0");
   }
   return hash.digest("hex");

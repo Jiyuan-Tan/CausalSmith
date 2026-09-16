@@ -23,9 +23,9 @@ file:line, and the T-blocks that reach it.
 - `regen_snippets.ts` — one-off: re-extract `statement` fields in a bundle's
   `lean_snippets.json` with the current `lean_extract` (fixes snippets captured by an
   older extractor). `npx tsx scripts/dev/regen_snippets.ts <bundleDir>`.
-- `migrate_bank_stage_prose.mjs` (+ `.d.mts`) — one-off bank migration (old bare-number
+- `migrate_bank_stage_prose.ts` — one-off bank migration (old bare-number
   stage ids → `D-`/`F-` labels in bank README prose). Tested by
-  `test/migrate_bank_stage_prose.test.ts`. `node scripts/dev/migrate_bank_stage_prose.mjs`.
+  `test/migrate_bank_stage_prose.test.ts`. `npx tsx scripts/dev/migrate_bank_stage_prose.ts`.
 - `repin_frozen_hashes.mjs` — one-off: regenerate a bundle's `frozen_hashes.json` from a
   hand-amended `formal_layer.tex` (mirrors P1's hashing).
   `npx tsx scripts/dev/repin_frozen_hashes.mjs <bundleDirAbs>`.

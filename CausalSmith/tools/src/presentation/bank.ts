@@ -94,7 +94,10 @@ export interface BankEntry {
 }
 
 function parseFrontmatter(md: string): Record<string, string> {
-  const m = md.match(/^---\n([\s\S]*?)\n---/);
+  // CRLF-tolerant: a Windows clone (core.autocrlf) delivers `---\r\n`, which the
+  // \n-anchored patterns below would miss — leaving every key unset and the entry
+  // looking like it has no frontmatter at all.
+  const m = md.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---/);
   const out: Record<string, string> = {};
   if (!m) return out;
   for (const line of m[1].split("\n")) {

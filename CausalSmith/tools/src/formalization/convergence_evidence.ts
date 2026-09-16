@@ -138,11 +138,16 @@ export async function buildLeanEvidenceIndex(leanDir: string): Promise<LeanEvide
   const codeHashByFile = new Map<string, string>();
   const rawSourceByFile = new Map<string, string>();
   const commandRefs = new Set<string>();
+  // Both the file keys and the bytes are normalized here because they are HASHED into
+  // the F4 convergence receipts: `readdir` yields `\` on Windows and a checkout with
+  // core.autocrlf yields CRLF, so without this a receipt recorded on Linux misses on
+  // Windows (and vice versa) and every resumed run re-pays a full review.
   const files = existsSync(leanDir)
-    ? (await readdir(leanDir, { recursive: true })).map(String).filter((f) => f.endsWith(".lean") && !isPaperTmpPath(f)).sort()
+    ? (await readdir(leanDir, { recursive: true })).map(String).map((f) => f.replace(/\\/g, "/"))
+        .filter((f) => f.endsWith(".lean") && !isPaperTmpPath(f)).sort()
     : [];
   for (const file of files) {
-    const raw = await readFile(`${leanDir}/${file}`, "utf8");
+    const raw = (await readFile(`${leanDir}/${file}`, "utf8")).replace(/\r\n/g, "\n");
     rawSourceByFile.set(file, raw);
     const text = fileCommandText(stripLeanComments(raw));
     commandTextByFile.set(file, text);

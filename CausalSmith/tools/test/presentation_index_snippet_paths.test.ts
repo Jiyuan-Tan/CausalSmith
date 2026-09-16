@@ -4,8 +4,12 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { canCreateSymlink } from "./helpers.js";
 
 const execute = promisify(execFile);
+// Always launched as `node <cli.mjs>`: the `node_modules/.bin/tsx` shim is a
+// `.cmd` on Windows, which execFile cannot spawn.
+const TSX_CLI = resolve(import.meta.dirname, "..", "node_modules", "tsx", "dist", "cli.mjs");
 const dirs: string[] = [];
 afterEach(async () => { await Promise.all(dirs.splice(0).map(dir => rm(dir, { recursive: true, force: true }))); });
 const source = "private def helper : Nat := 1\n";
@@ -22,7 +26,8 @@ async function fixture() {
 }
 async function check(f: Awaited<ReturnType<typeof fixture>>, file: string, statement = source.trim()) {
   await writeFile(join(f.bundle, "lean_snippets.json"), JSON.stringify({ snippets: { helper: { decl: "helper", file, statement } } }));
-  const { stdout } = await execute(resolve(import.meta.dirname, "../node_modules/.bin/tsx"), [
+  const { stdout } = await execute(process.execPath, [
+    TSX_CLI,
     resolve(import.meta.dirname, "../bin/check_paper_indexes.ts"), "--json", "--no-vs", "--bundle", "fixture",
   ], { cwd: f.cs });
   return JSON.parse(stdout)[0].findings as { severity: string; subject: string }[];
@@ -42,7 +47,9 @@ it("continues to validate ordinary run-relative snippets", async () => {
   expect(await check(f, "Missing.lean"))
     .toContainEqual(expect.objectContaining({ severity: "missing-file" }));
 });
-it("rejects a canonical source symlink outside the workspace", async () => {
+// Skipped where the OS refuses to create a symlink (Windows without Developer Mode
+// or elevation): the escape this guards cannot be constructed there either.
+it.skipIf(!canCreateSymlink())("rejects a canonical source symlink outside the workspace", async () => {
   const f = await fixture();
   const outside = await mkdtemp(join(tmpdir(), "outside-snippet-")); dirs.push(outside);
   await writeFile(join(outside, "Helper.lean"), source);

@@ -12,6 +12,8 @@ import { withRunHeartbeat } from "../src/shared/run_heartbeat.js";
 
 const exec = promisify(execFile);
 const __TOOLS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Always launched as `node <cli.mjs>`: a bare `.mjs` path is not executable on
+// Windows, and the `node_modules/.bin/tsx` shim is a `.cmd` execFile cannot spawn.
 const TSX_CLI = path.resolve(__TOOLS_ROOT, "node_modules", "tsx", "dist", "cli.mjs");
 const BIN = (name: string): string => path.resolve(__TOOLS_ROOT, "bin", name);
 
@@ -28,7 +30,7 @@ beforeEach(async () => {
 });
 
 function run(bin: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
-  return exec(TSX_CLI, [BIN(bin), QID, SPEC, ...args], { cwd: repoRoot, env: { ...process.env } });
+  return exec(process.execPath, [TSX_CLI, BIN(bin), QID, SPEC, ...args], { cwd: repoRoot, env: { ...process.env } });
 }
 
 describe("add_assumption.ts", () => {

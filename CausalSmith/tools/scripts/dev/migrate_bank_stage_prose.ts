@@ -1,8 +1,26 @@
-#!/usr/bin/env node
-
+// One-off bank migration: rewrite old bare-number stage ids in bank README prose
+// (`stage 0.5`) to the `D-`/`F-` labels (`stage D0.5`), leaving code spans, fenced
+// blocks and YAML front matter untouched.
+//
+// TypeScript rather than plain `.mjs` on purpose: the previous `.mjs` + hand-written
+// `.d.mts` sidecar pair made module resolution ambiguous — on Windows the test's
+// `import … from "./migrate_bank_stage_prose.mjs"` picked up the DECLARATION file and
+// failed to parse it as JavaScript, taking the whole test file down at collection.
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+export interface MigrationResult {
+  content: string;
+  substitutions: number;
+}
+
+export interface MigrationSummary {
+  filesScanned: number;
+  filesTouched: number;
+  totalSubstitutions: number;
+  changed: Array<{ file: string; substitutions: number }>;
+}
 
 const BANK_TIERS = ["downgraded", "failed", "accepted"];
 
@@ -29,16 +47,16 @@ const STAGE_MAP = new Map([
 
 const stagePattern = /\b[Ss]tage\s+(4d|-1\.1|-1\.2|-0\.5|0\.0|0\.k|0\.M|0\.5|1\.5|2\.5|3\.5|-1|0|1|2|3|4|5)(?![\w-])/g;
 
-function replaceStageLabels(text) {
+function replaceStageLabels(text: string): MigrationResult {
   let substitutions = 0;
-  const content = text.replace(stagePattern, (_match, stage) => {
+  const content = text.replace(stagePattern, (_match, stage: string) => {
     substitutions += 1;
-    return STAGE_MAP.get(stage);
+    return STAGE_MAP.get(stage)!;
   });
   return { content, substitutions };
 }
 
-function migrateInlineProse(line) {
+function migrateInlineProse(line: string): MigrationResult {
   let result = "";
   let substitutions = 0;
   let inInlineCode = false;
@@ -65,9 +83,9 @@ function migrateInlineProse(line) {
   return { content: result, substitutions };
 }
 
-export function migrateMarkdown(content) {
+export function migrateMarkdown(content: string): MigrationResult {
   const lines = content.match(/[^\n]*\n|[^\n]+/g) ?? [];
-  const migratedLines = [];
+  const migratedLines: string[] = [];
   let substitutions = 0;
   let inYamlFrontMatter = lines[0]?.replace(/\r?\n$/, "") === "---";
   let inCodeFence = false;
@@ -101,27 +119,24 @@ export function migrateMarkdown(content) {
     substitutions += migrated.substitutions;
   }
 
-  return {
-    content: migratedLines.join(""),
-    substitutions,
-  };
+  return { content: migratedLines.join(""), substitutions };
 }
 
-async function pathExists(dir) {
+async function pathExists(dir: string): Promise<boolean> {
   try {
     await readdir(dir);
     return true;
   } catch (error) {
-    if (error?.code === "ENOENT") {
+    if ((error as NodeJS.ErrnoException)?.code === "ENOENT") {
       return false;
     }
     throw error;
   }
 }
 
-async function collectReadmes(repoRoot) {
+async function collectReadmes(repoRoot: string): Promise<string[]> {
   const bankRoot = path.join(repoRoot, "CausalSmith", "doc", "research", "_bank");
-  const files = [];
+  const files: string[] = [];
 
   for (const tier of BANK_TIERS) {
     const tierRoot = path.join(bankRoot, tier);
@@ -141,9 +156,11 @@ async function collectReadmes(repoRoot) {
   return files.sort();
 }
 
-export async function runMigration({ repoRoot = process.cwd(), write = false } = {}) {
+export async function runMigration(
+  { repoRoot = process.cwd(), write = false }: { repoRoot?: string; write?: boolean } = {},
+): Promise<MigrationSummary> {
   const files = await collectReadmes(repoRoot);
-  const changed = [];
+  const changed: Array<{ file: string; substitutions: number }> = [];
   let totalSubstitutions = 0;
 
   for (const file of files) {
@@ -154,10 +171,7 @@ export async function runMigration({ repoRoot = process.cwd(), write = false } =
     }
 
     totalSubstitutions += migrated.substitutions;
-    changed.push({
-      file,
-      substitutions: migrated.substitutions,
-    });
+    changed.push({ file, substitutions: migrated.substitutions });
 
     if (write) {
       await writeFile(file, migrated.content);
@@ -172,16 +186,14 @@ export async function runMigration({ repoRoot = process.cwd(), write = false } =
   };
 }
 
-function parseCliArgs(argv) {
+function parseCliArgs(argv: string[]): { write: boolean } {
   if (argv.includes("--write") && argv.includes("--dry-run")) {
     throw new Error("Use either --dry-run or --write, not both.");
   }
-  return {
-    write: argv.includes("--write"),
-  };
+  return { write: argv.includes("--write") };
 }
 
-async function main() {
+async function main(): Promise<void> {
   const { write } = parseCliArgs(process.argv.slice(2));
   const summary = await runMigration({ write });
   const mode = write ? "write" : "dry-run";
@@ -197,7 +209,7 @@ async function main() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
+  main().catch((error: unknown) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
   });

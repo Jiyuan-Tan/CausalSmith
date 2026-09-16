@@ -696,10 +696,17 @@ export async function stageP4(io: StageIO): Promise<void> {
   // (`validatePaperIndexReplacement`), and a comparison against git HEAD fails on any working
   // tree whose Lean differs from HEAD — another window's uncommitted edits, a legitimately
   // removed helper — with no bundle defect at all. CI keeps the `--vs` check.
+  // Launched as `node <tsx cli>`, never `npx`: on Windows `npx` is `npx.cmd`, which
+  // Node refuses to spawn without a shell, so every P4 would die here — reported by
+  // the catch below as a paper-index lint failure, which it is not.
+  const toolsDir = join(io.ctx.repoRoot, "tools");
   const idxLint = await execFileP(
-    "npx",
-    ["tsx", "bin/check_paper_indexes.ts", "--strict", "--no-vs", "--bundle", basename(io.outDir)],
-    { cwd: join(io.ctx.repoRoot, "tools"), maxBuffer: 16 * 1024 * 1024 },
+    process.execPath,
+    [
+      join(toolsDir, "node_modules", "tsx", "dist", "cli.mjs"),
+      "bin/check_paper_indexes.ts", "--strict", "--no-vs", "--bundle", basename(io.outDir),
+    ],
+    { cwd: toolsDir, maxBuffer: 16 * 1024 * 1024 },
   ).catch((err: { stdout?: string; stderr?: string; message?: string }) => {
     // Surface the lint's own report: `execFile`'s message is only "Command failed: …".
     throw new Error(`P4 paper-index lint failed:\n${[err.stdout, err.stderr].filter(Boolean).join("\n").slice(-4000) || err.message}`);

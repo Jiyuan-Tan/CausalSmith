@@ -1,6 +1,10 @@
-import { existsSync, readFileSync, readdirSync, cpSync, mkdtempSync, rmSync, statSync } from "node:fs";
+import {
+  existsSync, readFileSync, readdirSync, cpSync, mkdtempSync, rmSync, statSync,
+  symlinkSync, writeFileSync,
+} from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { tmpdir } from "node:os";
+import { probeProgram } from "../src/shared/setup_checks.js";
 
 /**
  * The real CausalSmith package root (parent of tools/), for integration tests
@@ -33,6 +37,48 @@ export function acceptedBankEntry(): { qid: string; spec: string } {
     if (hasState) return { qid: m[1], spec: m[2] };
   }
   throw new Error(`no accepted bank entry under ${dir}`);
+}
+
+let symlinkProbe: boolean | undefined;
+
+/**
+ * Whether this machine can create a symlink at all, memoized.
+ *
+ * Windows refuses with EPERM unless the process is elevated or Developer Mode is on.
+ * The tests that build one do so to assert a symlink-ESCAPE guard: where the OS will
+ * not create the symlink, the attack they cover cannot be constructed either, so they
+ * skip rather than report a machine privilege level as a product failure.
+ */
+export function canCreateSymlink(): boolean {
+  if (symlinkProbe !== undefined) return symlinkProbe;
+  const dir = mkdtempSync(join(tmpdir(), "causalsmith-symlink-probe-"));
+  try {
+    writeFileSync(join(dir, "target"), "");
+    symlinkSync(join(dir, "target"), join(dir, "link"));
+    symlinkProbe = true;
+  } catch {
+    symlinkProbe = false;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  return symlinkProbe;
+}
+
+const programProbes = new Map<string, boolean>();
+
+/**
+ * Whether `program --version` launches and exits 0 here, memoized across the file.
+ *
+ * Tests that shell out to an OPTIONAL external tool (pandoc, latexmk) gate on this and
+ * skip when it is absent: a machine-setup gap belongs in `npm run check:setup`, which
+ * reports it with install instructions, not in a red test suite that hides real defects.
+ */
+export function hasProgram(program: string): boolean {
+  const hit = programProbes.get(program);
+  if (hit !== undefined) return hit;
+  const found = probeProgram(program);
+  programProbes.set(program, found);
+  return found;
 }
 
 /** Every file under `dir`, as paths relative to it. */

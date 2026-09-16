@@ -31,12 +31,17 @@ export async function externallyConsumedModules(
 ): Promise<Set<string>> {
   const out = new Set<string>();
   if (candidates.size === 0) return out;
+  // `subdir` comes from the bank state and is always `/`-separated; `readdir` yields
+  // the host separator. Without this the run's own files never match the exclusion on
+  // Windows, so every run module a sibling imports is misread as externally consumed
+  // and silently dropped from the paper index.
+  const subdirNative = subdir.split("/").join(path.sep);
   const files = (await readdir(csRoot, { recursive: true }))
     .map(String)
     .filter(
       (f) =>
         f.endsWith(".lean") &&
-        !f.startsWith(subdir) &&
+        !f.startsWith(subdirNative) &&
         !f.startsWith(".lake") &&
         !f.includes(`${path.sep}.lake${path.sep}`) &&
         !f.includes(`${path.sep}tmp${path.sep}`),

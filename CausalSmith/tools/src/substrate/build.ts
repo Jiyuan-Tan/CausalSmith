@@ -11,7 +11,13 @@ export function parseBuildDiagnostics(log: string, files: string[]): BuildDiagno
   const perFile: Record<string, { sorries: number; errors: number }> = {};
   for (const f of files) perFile[f] = { sorries: 0, errors: 0 };
   const attribute = (line: string, kind: "sorries" | "errors"): boolean => {
-    const hit = files.find((f) => line.includes(f));
+    // `files` is derived from module names and is always `/`-separated, while Lake and
+    // Lean print paths with the host separator. Without normalizing the line, nothing
+    // ever matches on Windows: `sorryCount` stays 0 on a sorry-laden tree and — since
+    // `lake` exits 0 with sorries — the gate promotes unproven substrate. Only the
+    // matching copy is normalized; `errors` still records the original text.
+    const norm = line.split("\\").join("/");
+    const hit = files.find((f) => norm.includes(f));
     if (hit) perFile[hit][kind] += 1;
     return hit !== undefined;
   };

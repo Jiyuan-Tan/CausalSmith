@@ -1,4 +1,5 @@
-import { writeFile, rename } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
+import { renameWithRetry } from "../shared/json_atomic.js";
 
 let seq = 0;
 
@@ -20,5 +21,5 @@ export async function writeJsonAtomic(path: string, value: unknown): Promise<voi
 export async function writeTextAtomic(path: string, text: string): Promise<void> {
   const tmp = `${path}.${process.pid}.${++seq}.tmp`;
   await writeFile(tmp, text, "utf8");
-  await rename(tmp, path);
+  await renameWithRetry(tmp, path);
 }

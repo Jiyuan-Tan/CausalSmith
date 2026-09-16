@@ -1,5 +1,6 @@
 // CausalSmith/tools/test/substrate/coordinate.test.ts
 import { describe, it, expect } from "vitest";
+import path from "node:path";
 import {
   applyInsertOnly, applyManifest, insertImportSorted, type CoordinateApplyDeps,
 } from "../../src/substrate/coordinate.js";
@@ -12,6 +13,10 @@ function memFs(initial: Record<string, string>) {
   const runLog: string[] = [];
   let failStep: string | null = null;
   let timeoutStep: string | null = null;
+  // The fixture keys are written `/`-separated, but the code under test composes paths
+  // with `path.join`, which emits `\` on Windows — so every lookup missed there and the
+  // real assertions were masked by "apply error: ENOENT". Key on one spelling instead.
+  const key = (p: string): string => p.split(path.sep).join("/");
   const deps: CoordinateApplyDeps = {
     run: async (cmd) => {
       runLog.push(cmd);
@@ -21,14 +26,14 @@ function memFs(initial: Record<string, string>) {
       return { code: failStep && cmd.includes(failStep) ? 1 : 0, log: `ran ${cmd}` };
     },
     readFile: async (p) => {
-      const v = files.get(p);
+      const v = files.get(key(p));
       if (v === undefined) throw new Error(`ENOENT ${p}`);
       return v;
     },
-    writeFile: async (p, t) => { files.set(p, t); },
-    removeFile: async (p) => { files.delete(p); },
+    writeFile: async (p, t) => { files.set(key(p), t); },
+    removeFile: async (p) => { files.delete(key(p)); },
     removeDir: async () => {},
-    exists: async (p) => files.has(p) || [...files.keys()].some((f) => f.startsWith(`${p}/`)),
+    exists: async (p) => files.has(key(p)) || [...files.keys()].some((f) => f.startsWith(`${key(p)}/`)),
   };
   return {
     files, deps, runLog,

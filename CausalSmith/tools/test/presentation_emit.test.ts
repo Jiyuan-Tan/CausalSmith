@@ -9,6 +9,12 @@ import { parseNoteBlocks, type NoteBlock } from "../src/presentation/note_parser
 import { parseBib } from "../src/presentation/citations.js";
 import { resolveLeanDeclaration } from "../src/presentation/declaration_resolver.js";
 import type { CrosswalkEntry } from "../src/presentation/types.js";
+import { hasProgram } from "./helpers.js";
+
+// pandoc is an optional machine dependency (`npm run check:setup` reports it with
+// install instructions). Tests that spawn it skip where it is absent rather than
+// turning a setup gap into a red suite that hides real defects.
+const PANDOC = hasProgram("pandoc");
 
 const PAPER = `
 \\begin{assumptionv}{P-2}[Overlap tail]
@@ -380,7 +386,7 @@ describe("assumption table", () => {
   });
 });
 
-describe("tex2html (requires pandoc)", () => {
+describe.skipIf(!PANDOC)("tex2html (requires pandoc)", () => {
   // pandoc spawns are fast in plain node (~70ms) but can take ~10s each under
   // vitest worker threads on the cluster; budget accordingly.
   it("replaces LaTeX-native picture environments with a placeholder instead of leaking coordinates", { timeout: 120_000 }, async () => {
@@ -634,7 +640,7 @@ describe("symbol links and equation labels on the web", () => {
     expect(repairSymbolLeanrefTargets(tex, ["Y(b)"])).toBe(tex); // unknown stays unknown (P4 stays loud)
   });
 
-  it("keeps an equation label for numbering but strips it from the math the page renders", async () => {
+  it.skipIf(!PANDOC)("keeps an equation label for numbering but strips it from the math the page renders", async () => {
     const tex = "\\begin{document}See \\cref{eq:one}.\\begin{equation}\\label{eq:one} a = b \\end{equation}\\end{document}";
     const html = await tex2html(tex, [], new Set());
     expect(html).not.toContain("\\label");
@@ -643,7 +649,7 @@ describe("symbol links and equation labels on the web", () => {
     expect(bare).not.toContain("\\label");
   });
 
-  it("spells out mathtools' delimited small matrices for the page", async () => {
+  it.skipIf(!PANDOC)("spells out mathtools' delimited small matrices for the page", async () => {
     const html = await tex2html("\\begin{document}\\(B=\\begin{psmallmatrix}1&1\\\\0.2&0.8\\end{psmallmatrix}\\)\\end{document}", [], new Set());
     expect(html).not.toContain("psmallmatrix");
     expect(html).toContain("\\left(\\begin{smallmatrix}");

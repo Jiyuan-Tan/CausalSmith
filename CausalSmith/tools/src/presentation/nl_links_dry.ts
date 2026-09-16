@@ -87,7 +87,9 @@ export async function findBundles(root: string): Promise<string[]> {
 
 /** Run every free pass of the sub-step against one bundle directory. */
 export async function dryRunBundle(dir: string): Promise<BundleReport> {
-  const bundle = dir.split("/").filter(Boolean).pop() ?? dir;
+  // Split on either separator: `dir` is built with `join`, so on Windows it contains no
+  // `/` at all and the report would label every bundle with its full absolute path.
+  const bundle = dir.split(/[\\/]/).filter(Boolean).pop() ?? dir;
   const report: BundleReport = {
     bundle,
     ok: true,

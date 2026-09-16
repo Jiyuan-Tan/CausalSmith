@@ -53,7 +53,11 @@ function matchHeader(line: string): HeaderMatch | null {
 export function parseNoteBlocks(md: string): NoteBlock[] {
   const blocks: NoteBlock[] = [];
   let cur: NoteBlock | null = null;
-  for (const line of md.split("\n")) {
+  // Notes are git-checked-out Markdown, so a Windows clone (core.autocrlf) delivers
+  // CRLF. Every header and field pattern below anchors on end-of-line, so a trailing
+  // \r makes each one miss and the note parses as zero blocks. Normalize once here,
+  // at the parser boundary, rather than trusting each caller's read.
+  for (const line of md.replace(/\r\n/g, "\n").split("\n")) {
     const h = matchHeader(line);
     if (h) {
       if (cur) blocks.push(finish(cur));

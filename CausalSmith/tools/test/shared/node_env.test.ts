@@ -50,6 +50,15 @@ async function runResolver(env: NodeJS.ProcessEnv): Promise<{
   };
 }
 
+/**
+ * Cases that synthesize a fake Node install cannot run on Windows: `fakeNodeBin`
+ * writes a `#!/bin/sh` stub and marks it executable, but Node's `chmod` cannot set an
+ * executable bit on NTFS, so git-bash never resolves the stub and the resolver sees an
+ * empty PATH. That is a property of the host, not of `node_env.sh` — and the cases
+ * that exercise the real resolver against the real PATH Node still run everywhere.
+ */
+const SYNTHETIC_NODE_INSTALLS = process.platform !== "win32";
+
 /** A directory holding a `node` stub that reports `version`. */
 async function fakeNodeBin(root: string, name: string, version: string): Promise<string> {
   const bin = path.join(root, name, "bin");
@@ -72,7 +81,7 @@ describe("scripts/node_env.sh", () => {
     expect(res.version).toBe(process.version);
   });
 
-  it("does NOT assume $HOME — resolves via $NVM_DIR when ~/.nvm is absent", async () => {
+  it.skipIf(!SYNTHETIC_NODE_INSTALLS)("does NOT assume $HOME — resolves via $NVM_DIR when ~/.nvm is absent", async () => {
     // The exact production shape: $HOME has no .nvm, $NVM_DIR is elsewhere, and
     // no usable node is on PATH. The old `~/.nvm/nvm.sh` prelude failed here.
     const tmp = await mkdtemp(path.join(os.tmpdir(), "nodeenv-nvmdir-"));
@@ -91,7 +100,7 @@ describe("scripts/node_env.sh", () => {
     }
   });
 
-  it("replaces a too-old PATH node instead of accepting it", async () => {
+  it.skipIf(!SYNTHETIC_NODE_INSTALLS)("replaces a too-old PATH node instead of accepting it", async () => {
     const tmp = await mkdtemp(path.join(os.tmpdir(), "nodeenv-old-"));
     try {
       const oldBin = await fakeNodeBin(tmp, "ancient", "v12.22.9");
@@ -109,7 +118,7 @@ describe("scripts/node_env.sh", () => {
     }
   });
 
-  it("accepts any major above the floor, not just the historically pinned 20.20.2", async () => {
+  it.skipIf(!SYNTHETIC_NODE_INSTALLS)("accepts any major above the floor, not just the historically pinned 20.20.2", async () => {
     const tmp = await mkdtemp(path.join(os.tmpdir(), "nodeenv-newest-"));
     try {
       const versions = path.join(tmp, "nvm", "versions", "node");
@@ -150,7 +159,7 @@ describe("scripts/node_env.sh", () => {
     }
   });
 
-  it("honours the CAUSALSMITH_NODE_BIN override and clears npm_config_prefix", async () => {
+  it.skipIf(!SYNTHETIC_NODE_INSTALLS)("honours the CAUSALSMITH_NODE_BIN override and clears npm_config_prefix", async () => {
     const tmp = await mkdtemp(path.join(os.tmpdir(), "nodeenv-override-"));
     try {
       const forced = await fakeNodeBin(tmp, "forced", "v21.1.1");

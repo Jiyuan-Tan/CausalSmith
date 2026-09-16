@@ -15,7 +15,8 @@
 
 import lockfile from "proper-lockfile";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, writeFile, stat } from "node:fs/promises";
+import { mkdir, readFile, writeFile, stat } from "node:fs/promises";
+import { renameWithRetry } from "./json_atomic.js";
 import path from "node:path";
 
 const STALE_MS = 60_000;
@@ -80,7 +81,7 @@ async function lockedUpdate(
     if (after === before) return undefined;
     const tmp = `${file}.new`;
     await writeFile(tmp, after, "utf8");
-    await rename(tmp, file);
+    await renameWithRetry(tmp, file);
     return file;
   } finally {
     await release();

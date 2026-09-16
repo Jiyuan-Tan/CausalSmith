@@ -12,6 +12,12 @@ import { fullyQualifiedSourceDecls } from "../src/presentation/declaration_resol
 import { extractFullDeclSource } from "../src/presentation/lean_extract.js";
 import { FormalLayerSource } from "../src/presentation/formal_layer.js";
 import type { StageIO } from "../src/presentation/pipeline.js";
+import { canCreateSymlink } from "./helpers.js";
+
+// Windows refuses symlink creation without Developer Mode or elevation. The
+// symlink-escape guards below are split into their own cases so the namespace and
+// traversal assertions still run there, and the unconstructible ones skip visibly.
+const CAN_SYMLINK = canCreateSymlink();
 
 /**
  * Mechanical-layer test for the P1 statement equivalence judge (runStatementAudit → judgeStatements).
@@ -383,7 +389,7 @@ end N
     expect(hit.snippet).not.toContain("def foo : Nat");
   });
 
-  it("rejects wrong namespaces, traversal, and symlink escapes", async () => {
+  it("rejects wrong namespaces and traversal", async () => {
     await writeFile(join(dir, "Lean", "X.lean"), "namespace Wrong.Ns\nlemma target_decl : True := trivial\nend Wrong.Ns\n", "utf8");
     await expect(resolveLeanDeclaration(dir, "Lean", {
       file: "X.lean", decl: "Right.Ns.target_decl", line: 2,
@@ -391,6 +397,9 @@ end N
     await expect(resolveLeanDeclaration(dir, "Lean", {
       file: "../outside.lean", decl: "X.y", line: 1,
     })).rejects.toThrow(/traversing/);
+  });
+
+  it.skipIf(!CAN_SYMLINK)("rejects a symlink escape out of the workspace", async () => {
     const outside = await mkdtemp(join(tmpdir(), "present-outside-"));
     try {
       await writeFile(join(outside, "Escape.lean"), "lemma escaped : True := trivial\n", "utf8");
@@ -401,7 +410,7 @@ end N
     } finally { await rm(outside, { recursive: true, force: true }); }
   });
 
-  it("rejects a recorded run-file symlink into the allowed sibling Causalean tree", async () => {
+  it.skipIf(!CAN_SYMLINK)("rejects a recorded run-file symlink into the allowed sibling Causalean tree", async () => {
     const workspace = await mkdtemp(join(tmpdir(), "present-run-symlink-"));
     try {
       const packageRoot = join(workspace, "CausalSmith");

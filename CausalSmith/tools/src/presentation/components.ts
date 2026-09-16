@@ -96,12 +96,16 @@ export async function buildModuleDeclIndex(
       }
       const source = await readFile(fileReal, "utf8");
       const sourceHash = hashEnvBody(source);
+      // `rel` carries the host separator, but this value is published verbatim into
+      // lean_snippets.json, the crosswalk and the web bundle's source links, which are
+      // POSIX by convention everywhere else (see declaration_resolver).
+      const relPosix = rel.split(sep).join("/");
       for (const d of fullyQualifiedSourceDecls(source)) {
         if (out.has(d.name)) { out.delete(d.name); ambiguousFull.add(d.name); }
-        else if (!ambiguousFull.has(d.name)) out.set(d.name, { file: rel, line: d.line, kind: d.kind, decl: d.name, sourceHash });
+        else if (!ambiguousFull.has(d.name)) out.set(d.name, { file: relPosix, line: d.line, kind: d.kind, decl: d.name, sourceHash });
         const short = d.name.slice(d.name.lastIndexOf(".") + 1);
         const candidates = shortCandidates.get(short) ?? [];
-        candidates.push({ file: rel, line: d.line, kind: d.kind, decl: d.name, sourceHash });
+        candidates.push({ file: relPosix, line: d.line, kind: d.kind, decl: d.name, sourceHash });
         shortCandidates.set(short, candidates);
       }
     }

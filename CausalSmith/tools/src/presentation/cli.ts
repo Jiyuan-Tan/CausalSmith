@@ -22,7 +22,7 @@ import { runClaude } from "../workers/claude.js";
 import { MODELS } from "../models.js";
 import { withPresentationTokenUsage } from "./token_usage.js";
 import { summarizeTokenUsage, writeTokenUsageSummary } from "../token_usage.js";
-import { assertPresentationTools } from "../shared/setup_checks.js";
+import { assertPresentationTools, longPathsWarning } from "../shared/setup_checks.js";
 
 function usage(): never {
   console.error(
@@ -89,6 +89,10 @@ export async function runPresentationCli(argv: string[]): Promise<void> {
   // P4 shells out to pandoc and latexmk; fail before anything is written or paid for,
   // not after P1–P3. A dry run returns before either is called, and P6 needs neither.
   if (!dryRun && parsedFrom !== "P6") assertPresentationTools();
+  // Windows only (null elsewhere): bundle artifacts nest deeply under
+  // doc/presentation/<bundle>/, and latexmk's aux suffixes push them past MAX_PATH.
+  const longPaths = longPathsWarning();
+  if (longPaths) console.warn(`[setup] ${longPaths}`);
   const repoRoot = findCausalSmithRoot(process.cwd());
 
   const baseDeps: PaperDeps = {

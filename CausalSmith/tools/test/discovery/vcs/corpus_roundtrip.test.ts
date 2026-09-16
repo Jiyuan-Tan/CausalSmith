@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { CoreSchema } from "../../../src/discovery/core/schema.js";
@@ -18,10 +17,21 @@ import { proofValid } from "../../../src/discovery/vcs/validity.js";
 
 const researchRoot = path.resolve(process.cwd(), "..", "doc", "research");
 
+// Walked in-process rather than shelled out to `find`: on Windows `find` is a
+// text-search tool with unrelated syntax, so the spawn form failed the whole file at
+// collection time instead of discovering a corpus.
 function corpus(): string[] {
   if (!existsSync(researchRoot)) return [];
-  return execSync(`find ${JSON.stringify(researchRoot)} -name core.json -path '*discovery*'`, { encoding: "utf8" })
-    .trim().split("\n").filter((f) => f.length > 0);
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(p);
+      else if (entry.name === "core.json" && p.includes("discovery")) out.push(p);
+    }
+  };
+  walk(researchRoot);
+  return out;
 }
 
 describe("vcs corpus roundtrip", () => {

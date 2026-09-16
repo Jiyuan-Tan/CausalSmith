@@ -207,6 +207,10 @@ async function leanFiles(dir: string): Promise<string[]> {
   if (!existsSync(dir)) return [];
   return (await readdir(dir, { recursive: true }))
     .map(String)
+    // POSIX-form regardless of host: these relatives become `lean.file` in graph.json
+    // and the crosswalk, and are hashed into F4 convergence receipts, so a `\` here
+    // would make a Windows-produced bank artifact non-interchangeable with a Linux one.
+    .map((f) => f.replace(/\\/g, "/"))
     // Exclude the paper's disposable agent workspace (`tmp/`): a scratch probe (or a
     // scratch COPY of a real file, with its `-- @node:` tag) must never be extracted
     // into the graph — a duplicate tag there would fail every refresh as "unlinked".

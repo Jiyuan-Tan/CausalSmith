@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   migrateMarkdown,
   runMigration,
-} from "../scripts/dev/migrate_bank_stage_prose.mjs";
+} from "../scripts/dev/migrate_bank_stage_prose.js";
 
 describe("migrateMarkdown", () => {
   it("rewrites stage labels only in prose", () => {

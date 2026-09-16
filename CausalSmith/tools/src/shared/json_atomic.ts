@@ -27,6 +27,34 @@ export async function writeJsonAtomic(target: string, value: unknown): Promise<v
   await writeTextAtomic(target, JSON.stringify(value, null, 2));
 }
 
+/**
+ * `rename`, retried through the transient failures Windows adds to it.
+ *
+ * The retry is win32-only, so this is a strict no-op elsewhere: on POSIX
+ * `rename(2)` replaces the destination unconditionally, and EPERM/EACCES/EBUSY there
+ * are permanent conditions (permissions, a sticky bit, a busy mountpoint) that a
+ * backoff would only report more slowly. Windows' MoveFileEx also replaces — EXCEPT
+ * while any process holds the destination open, which on a developer machine is
+ * routine: an editor, the search indexer, a virus scanner, a synced folder, or simply
+ * the sibling `mapLimit` worker reading the cache we are replacing. Those clear
+ * within milliseconds, so a short backoff turns a spurious stage failure back into
+ * the atomic swap the caller asked for.
+ */
+export async function renameWithRetry(from: string, to: string): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      const transient = process.platform === "win32" &&
+        (code === "EPERM" || code === "EACCES" || code === "EBUSY");
+      if (!transient || attempt >= 10) throw err;
+      await new Promise((resolve) => setTimeout(resolve, 10 * (attempt + 1)));
+    }
+  }
+}
+
 /** Atomic raw-text variant of `writeJsonAtomic`, for writers that must preserve
  * exact prior bytes (e.g. transaction rollbacks) rather than re-serialize. */
 export async function writeTextAtomic(target: string, text: string): Promise<void> {
@@ -34,7 +62,7 @@ export async function writeTextAtomic(target: string, text: string): Promise<voi
   await mkdir(path.dirname(target), { recursive: true });
   try {
     await writeFile(temp, text, "utf8");
-    await rename(temp, target);
+    await renameWithRetry(temp, target);
   } finally {
     await rm(temp, { force: true });
   }

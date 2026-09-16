@@ -32,15 +32,45 @@ function isCarrierDefect(err: unknown): boolean {
   return /(?:Bad control character|LaTeX payload cannot be sealed|decoded JSON control character|under-escaped TeX|TeX companion|tex_ref|no tex_ref cites)/i.test(message);
 }
 
+const UNSUPPORTED_SYNC_CODES = new Set(["EINVAL", "ENOTSUP", "EISDIR"]);
+/**
+ * Windows-only additions. There, `FlushFileBuffers` needs write access to a real
+ * file: a directory handle cannot be flushed at all, and neither can a handle opened
+ * read-only — both report EPERM/EACCES. Tolerated ONLY on win32 so POSIX keeps
+ * treating a failed flush as the durability failure it is.
+ */
+const WINDOWS_UNSUPPORTED_SYNC_CODES = new Set(["EPERM", "EACCES"]);
+
+/**
+ * Flush a handle where the platform supports it; silently skip where it does not.
+ *
+ * Durability here is a POSIX idiom: fsync the data, then the parent directory, so the
+ * rename that published the file survives a crash. Treating the Windows refusals as
+ * fatal made every D0-SOLVE unit fail there with "wrote invalid solve JSON", which
+ * reads like a model defect and is not one. The rename ordering that gives a reader
+ * either a whole file or the old one still holds; only the crash-durability hint is
+ * unavailable, so this is best-effort by design.
+ */
+export async function syncHandleBestEffort(
+  handle: { sync: () => Promise<void> },
+  opts: { directory?: boolean } = {},
+): Promise<void> {
+  try {
+    await handle.sync();
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code ?? "";
+    // Directory-only, and only where it was already tolerated: a FILE flush that fails
+    // with one of these on POSIX is a real durability failure and must still throw.
+    if (opts.directory === true && UNSUPPORTED_SYNC_CODES.has(code)) return;
+    if (process.platform === "win32" && WINDOWS_UNSUPPORTED_SYNC_CODES.has(code)) return;
+    throw err;
+  }
+}
+
 export async function syncDirectory(dir: string): Promise<void> {
   const handle = await open(dir, "r");
   try {
-    try {
-      await handle.sync();
-    } catch (err) {
-      const code = (err as NodeJS.ErrnoException).code;
-      if (code !== "EINVAL" && code !== "ENOTSUP" && code !== "EISDIR") throw err;
-    }
+    await syncHandleBestEffort(handle, { directory: true });
   } finally {
     await handle.close();
   }
@@ -354,7 +384,8 @@ export async function readSolveUnitOutput(
       await options.assertPersistenceLease?.();
       const companionHandle = await open(companionPath, "r");
       try {
-        await companionHandle.sync();
+        // Read-only handle: Windows refuses to flush one (EPERM). See syncHandleBestEffort.
+        await syncHandleBestEffort(companionHandle);
       } finally {
         await companionHandle.close();
       }
@@ -390,7 +421,8 @@ export async function readSolveUnitOutput(
       await options.assertPersistenceLease?.();
       const acceptedHandle = await open(outPath, "r");
       try {
-        await acceptedHandle.sync();
+        // Read-only handle: Windows refuses to flush one (EPERM). See syncHandleBestEffort.
+        await syncHandleBestEffort(acceptedHandle);
       } finally {
         await acceptedHandle.close();
       }
