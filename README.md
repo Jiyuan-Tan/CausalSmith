@@ -1,6 +1,6 @@
 # CausalSmith
 
-**🌐 Website: [jiyuan-tan.github.io/CausalSmith](https://jiyuan-tan.github.io/CausalSmith/)** —
+**🌐 Website: [causalsmith.org](https://causalsmith.org/)** —
 browse the Causalean library (every definition and theorem with a plain-English
 translation) and the machine-verified working papers.
 
