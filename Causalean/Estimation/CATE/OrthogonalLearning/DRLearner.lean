@@ -218,8 +218,8 @@ loss is Neyman-orthogonal: its integrated mixed directional derivative between
 target and nuisance directions vanishes at the truth `(θ₀, η₀)` for every admissible
 target and nuisance direction](goal).
 
-Under the back-door causal assumptions and strict overlap, the DR-Learner
-squared loss is Neyman-orthogonal at the truth `(τ₀, η₀)`.
+With the supplied dominated-convergence bridge and score-flatness witness,
+the DR-Learner squared loss is Neyman-orthogonal at the truth `(θ₀, η₀)`.
 
 Mathematically, the proof follows the conditional Riesz cancellation
 argument from the natural-language note:

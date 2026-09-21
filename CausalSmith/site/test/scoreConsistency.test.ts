@@ -12,9 +12,8 @@ import { loadBundles } from "../src/lib/bundles.js";
  * landing, 6.6 on its own report — and sort under a number it never showed
  * (audit, 2026-09-21).
  *
- * `Bundle.score` is now decided once, at load, by this rule. This test states
- * the rule over the real corpus and prints the drift, so the pipeline-side
- * fix can be tracked separately.
+ * `Bundle.score` is now decided once, at load, by this rule. The corpus gate
+ * also keeps the copied metadata aligned with the current review artifact.
  */
 
 const PRESENTATION = resolve(import.meta.dirname, "..", "..", "doc", "presentation");
@@ -51,16 +50,11 @@ describe("one score per paper", () => {
     }
   });
 
-  // Not a failure of the site — a data drift for the pipeline to chase. The
-  // site now renders one number; this records which bundles disagree.
-  it("records where the metadata copy has drifted from the report", () => {
+  it("keeps the metadata copy aligned with the current report", () => {
     const drift = bundles
       .filter((b) => typeof b.review?.score === "number" && typeof b.meta.score === "number")
       .filter((b) => b.meta.score !== b.review!.score)
       .map((b) => `${b.id}: meta=${b.meta.score} review=${b.review!.score}`);
-    // Pinned so a NEW drift is noticed. Update deliberately, with the reason.
-    expect(drift).toEqual([
-      "stat_discrete_ate_heterogeneity_frontier_v1: meta=7 review=6.6",
-    ]);
+    expect(drift).toEqual([]);
   });
 });

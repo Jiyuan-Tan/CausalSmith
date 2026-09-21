@@ -144,8 +144,8 @@ theorem IsLittleOpF.boundedInProbability
   simpa only [one_mul] using ht δ hδ
 
 /-- For [row measures](hyp:μ), [normed row random variables](hyp:X), and [an index
-filter](hyp:l), [convergence in probability to zero is equivalent to stochastic little-o at the
-constant unit rate](goal). -/
+filter](hyp:l), [convergence to zero in the row measures is equivalent to stochastic little-o at the
+constant unit rate in those same measures](goal). -/
 theorem tendstoInProbability_zero_iff_isLittleOpF_one
     {ι : Type*} {Ω : ι → Type*} [∀ i, MeasurableSpace (Ω i)]
     {E : Type*} [SeminormedAddCommGroup E]

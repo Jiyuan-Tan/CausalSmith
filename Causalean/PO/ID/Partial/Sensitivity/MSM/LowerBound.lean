@@ -643,7 +643,7 @@ covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap).
 outcome's conditional
 distribution given each covariate value has a continuous cumulative distribution
 function](hyp:hatomless) and [the lower calibration quantile level lies strictly between 0 and 1
-almost surely](hyp:hlevel), then [there exists a σ(X)-measurable cutoff function whose conditional
+almost surely](hyp:hlevel), then [there exists an ambient-measurable cutoff function whose conditional
 treated-survival equals the lower target survival almost everywhere](goal). The `survTargetLower`
 analogue of `exists_calibrating_cutoff`. -/
 theorem exists_calibrating_cutoff_lower (Λ : ℝ)

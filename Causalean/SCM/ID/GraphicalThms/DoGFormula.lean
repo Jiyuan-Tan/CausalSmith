@@ -186,7 +186,7 @@ noncomputable def fixObservedAncestralSet
 observed](hyp:hObs) and whose [fixed nodes are not already fixed](hyp:hFix), [a query-node
 set](hyp:Y), and [a fixed-value intervention slice](hyp:sDo), [the pinned extension](goal)
 maps each assignment on the observed post-intervention ancestors to an assignment on all
-original observed nodes, using the slice's fixed value at intervened random coordinates.
+original observed nodes, using the slice's fixed value at intervened random coordinates, the supplied ancestral assignment at its remaining covered coordinates, and arbitrary values elsewhere.
 
 Extend an assignment on the post-intervention observed ancestral support to
 the original observed coordinates, pinning intervened random coordinates to the

@@ -356,7 +356,7 @@ theorem kneserAdjacency_harmonicProjection (h2 : 2 * M ≤ n)
         harmonicProjection n M k f := by
   exact kneserAdjacency_eigen h2 k _ (harmonicProjection_mem k f)
 
-/-- For [a population size](hyp:n) and [a slice size](hyp:M), [the normalized Kneser adjacency operator](goal) is [the unnormalized disjointness sum divided by the number of disjoint neighbors](step:1). -/
+/-- For [a population size](hyp:n) and [a slice size](hyp:M), [the normalized Kneser adjacency operator](goal) is [the unnormalized disjointness sum scaled by the reciprocal of the number of disjoint neighbors, yielding zero when that count is zero](step:1). -/
 noncomputable def normalizedKneserAdjacency (n M : ℕ) :
     SliceFn n M →ₗ[ℝ] SliceFn n M :=
   ((n - M).choose M : ℝ)⁻¹ • kneserAdjacency n M

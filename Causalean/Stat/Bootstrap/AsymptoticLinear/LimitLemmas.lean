@@ -242,8 +242,9 @@ theorem conditionalSlutsky_cdfKolmogorov_inProb
 
 /-- For [a sequence of data-dependent probability laws on the real line](hyp:nu), [a limiting
 law](hyp:G) and [an interior quantile level](hyp:hbeta0,hbeta1), suppose the limiting law's
-distribution function is [continuous at its lower quantile](hyp:hGcont) and [strictly increasing
-there](hyp:hGstrict), and [the Kolmogorov distance between the data-dependent laws and the limit
+distribution function is [continuous at its lower quantile](hyp:hGcont) and [has a smaller value
+at every lower point and a larger value at every higher point than at that quantile](hyp:hGstrict),
+and [the Kolmogorov distance between the data-dependent laws and the limit
 tends to zero in sampling probability](hyp:hdist).
 Then [the random lower quantiles converge in sampling probability to the limiting
 quantile](goal). -/

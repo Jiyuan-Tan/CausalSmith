@@ -41,8 +41,8 @@ abbrev empiricalKishDispersion {Ω : Type*} (g : Ω → ℝ) (n : ℕ)
   empiricalWeightSecondMoment g n sample
 
 /-- Given [a finite vector of realized weights](hyp:w), [the Kish design effect](goal) is zero
-when their sum is zero, and otherwise uses the normalized formula.
--/
+when their sum is zero; otherwise it is the number of weights times their squared-weight sum,
+divided by the square of their total weight. -/
 def kishDesignEffect {n : ℕ} (w : Fin n → ℝ) : ℝ :=
   if ∑ i, w i = 0 then 0
   else ((n : ℝ) * ∑ i, w i ^ 2) / (∑ i, w i) ^ 2

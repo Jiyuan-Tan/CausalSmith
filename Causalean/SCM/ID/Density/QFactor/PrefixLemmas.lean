@@ -233,7 +233,7 @@ lemma prefixIn_parent_closed_induce_observed
     ⟨hvA, lt_trans hIndexLt hwIdxLt⟩
 
 /-- For [a finite structural causal model with finite measurable node-value spaces](hyp:N,Ω,M),
-[a fixed-node assignment](hyp:s), [an observed ancestral node set](hyp:A), [evidence that it is
+[a fixed-node assignment](hyp:s), [an observed node set](hyp:A), [evidence that it is
 observed](hyp:hA), [a prefix length](hyp:k), and [an observed realization](hyp:x), [the local
 q-mass of the induced graph's prefix factors into the local q-masses of its intersections with
 the induced c-components](goal). -/

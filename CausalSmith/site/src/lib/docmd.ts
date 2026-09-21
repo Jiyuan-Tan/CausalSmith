@@ -1,6 +1,10 @@
 import katex from "katex";
 import { KATEX_MACROS } from "./katexConfig.js";
 
+// KaTeX can also print unsupported commands in red without throwing. Treat that
+// output as a failed render so the reader sees the original notation intact.
+const KATEX_FAILED = /katex-error|#cc0000/;
+
 /**
  * Minimal docstring → HTML renderer for Lean docstrings: paragraphs, `*`/`-` bullets,
  * backtick code spans, $…$ / $$…$$ KaTeX math. Everything else is escaped.
@@ -21,11 +25,12 @@ function esc(s: string): string {
 
 function tex(src: string, display: boolean): string {
   try {
-    return katex.renderToString(src, {
+    const html = katex.renderToString(src, {
       displayMode: display,
-      throwOnError: false,
+      throwOnError: true,
       macros: { ...KATEX_MACROS },
     });
+    return KATEX_FAILED.test(html) ? `<code>${esc(src)}</code>` : html;
   } catch {
     return `<code>${esc(src)}</code>`;
   }
@@ -225,7 +230,8 @@ export function renderLabel(s: string): string {
   if (!/\\[a-zA-Z]/.test(s)) return esc(s);
   const tex = s.replace(/^\s*\\\(|\\\)\s*$/g, "").trim();
   try {
-    return katex.renderToString(tex, { throwOnError: true, macros: { ...KATEX_MACROS } });
+    const html = katex.renderToString(tex, { throwOnError: true, macros: { ...KATEX_MACROS } });
+    return KATEX_FAILED.test(html) ? esc(s) : html;
   } catch {
     return esc(s);
   }

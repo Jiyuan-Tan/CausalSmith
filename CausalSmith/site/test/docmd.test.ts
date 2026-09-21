@@ -52,6 +52,13 @@ describe("docmd", () => {
     // Display math is demoted to inline so an index row stays one row.
     expect(html).not.toContain("katex-display");
   });
+  it("keeps unsupported Formal-layer math readable without red KaTeX markers", () => {
+    for (const source of [String.raw`\[x=1\tag{C1}\]`, String.raw`\(\nq_x\)`]) {
+      const html = renderTexCompact(source);
+      expect(html).toContain("<code>");
+      expect(html).not.toMatch(/katex-error|#cc0000/);
+    }
+  });
   it("nlOf takes the first paragraph", () => {
     expect(nlOf("The NL part.\n\nImplementation notes.")).toBe("The NL part.");
     expect(nlOf(null)).toBeNull();

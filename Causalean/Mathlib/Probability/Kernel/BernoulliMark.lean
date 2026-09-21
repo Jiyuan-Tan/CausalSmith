@@ -109,7 +109,7 @@ theorem ae_bernoulliMarkKernel_apply_univ_eq_one
     (bernoulliBool_isProbabilityMeasure ha.le h'a)
 
 /-- For [a finite base measure](hyp:ν₁), [a measurable success weight](hyp:h,hh), and
-[strict unit-interval overlap almost everywhere](hyp:hpos,hle), [the first-coordinate
+[a positive success weight bounded above by one almost everywhere](hyp:hpos,hle), [the first-coordinate
 pushforward of the reciprocal-tilt Bernoulli law is the reciprocal tilt](goal). -/
 theorem bernoulliMarkedLaw_map_fst
     {α : Type*} [MeasurableSpace α] (ν₁ : Measure α) [IsFiniteMeasure ν₁]
@@ -135,7 +135,7 @@ theorem bernoulliMarkedLaw_map_fst
     _ = reciprocalTilt ν₁ h s := setLIntegral_one s
 
 /-- For [a finite base measure](hyp:ν₁), [a measurable success weight](hyp:h,hh),
-[strict unit-interval overlap almost everywhere](hyp:hpos,hle), and [unit total mass of
+[a positive success weight bounded above by one almost everywhere](hyp:hpos,hle), and [unit total mass of
 the reciprocal tilt](hyp:hcal), [the reciprocal-tilt Bernoulli-marked law is a probability
 measure](goal). -/
 theorem bernoulliMarkedLaw_isProbabilityMeasure
@@ -175,7 +175,7 @@ theorem bernoulliMarkedLaw_restrict_true_map_fst
   rw [hcancel]
 
 /-- For [a finite base measure](hyp:ν₁), [a measurable success weight](hyp:h,hh), and
-[strict unit-interval overlap almost everywhere](hyp:hpos,hle), [restricting the marked
+[a positive success weight bounded above by one almost everywhere](hyp:hpos,hle), [restricting the marked
 law to failed marks and then forgetting the mark gives the base measure tilted by the
 failure odds `(1-h)/h`](goal). -/
 theorem bernoulliMarkedLaw_restrict_false_map_fst
@@ -203,7 +203,7 @@ theorem bernoulliMarkedLaw_restrict_false_map_fst
   rw [← withDensity_apply _ hs, hfailure]
 
 /-- For [a finite base measure](hyp:ν₁), [a measurable success weight](hyp:h,hh),
-[strict unit-interval overlap almost everywhere](hyp:hpos,hle), and [unit total mass of
+[a positive success weight bounded above by one almost everywhere](hyp:hpos,hle), and [unit total mass of
 the reciprocal tilt](hyp:hcal), [the conditional mean of the Boolean mark given the base
 coordinate equals the success weight at that coordinate](goal). -/
 theorem bernoulliMarkedLaw_condExp_mark

@@ -366,7 +366,7 @@ discrete positivity of their observational kernels](hyp:hpos₁,hpos₂), and [h
 heterogeneously equal observational kernels](hyp:_hobs), if [the total interventional query on
 outcome set `Y` under intervention `X` is well formed in both models](hyp:hvalid₁,hvalid₂) and
 `X`, `Y` have a successful recursive ID soundness certificate on `G`, then [the two models'
-post-intervention outcome kernels for `Y` are heterogeneously equal](goal). This is the same
+post-intervention outcome kernels for `Y` are equal at their chosen default fixed-value assignments](goal). This is the same
 transport as `doKernelY_eq_cfactor_decomposition`, with the recursive `Y`-marginal wrapper in
 place of the no-fixing one. -/
 theorem doKernelY_eq_cfactor_decomposition_rec

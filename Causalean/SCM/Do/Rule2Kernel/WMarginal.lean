@@ -236,7 +236,7 @@ lemma measurableEmbedding_fillZrW
     variables given the fixed values `s'`, the post-intervention random copies of `Z`
     almost surely equal their assigned intervention values](hyp:hPinned), then for [every
     measurable `W`-event `A`](hyp:hA), [the intervened model's marginal probability of
-    `A` on `W` equals the base model's probability of the pullback of `A` through the
+    `A` on `W` equals the base model's probability of the image of `A` under the
     map that fills in the pinned `Z`-random-copy coordinates alongside `W`](goal).
 
     When the post-intervention random treatment copies are pinned almost surely

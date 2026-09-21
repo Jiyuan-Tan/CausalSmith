@@ -56,11 +56,11 @@ than one](hyp:Λ,hΛ). Given, for the treated arm, [two-sided propensity
 overlap](hyp:hoverlapT), [an
 atomless conditional outcome distribution](hyp:hatomlessT), [that the upper and lower calibration
 levels each lie strictly between 0 and 1 almost everywhere](hyp:hlevelTU,hlevelTL), and
-[integrability regularity, for every `σ(X)`-measurable cutoff candidate, feeding both the upper
+[integrability regularity, for every ambient-measurable cutoff candidate, feeding both the upper
 and lower calibration constructions](hyp:hregTU,hregTL) — together with the symmetric conditions
 for the control arm ([overlap](hyp:hoverlapC), [atomlessness](hyp:hatomlessC), [calibration-level
 regularity](hyp:hlevelCU,hlevelCL), and
-[cutoff integrability regularity](hyp:hregCU,hregCL)) — then [there exist `σ(X)`-measurable
+[cutoff integrability regularity](hyp:hregCU,hregCL)) — then [there exist ambient-measurable
 conditional-quantile cutoffs `cTU, cTL, cCU, cCL` such that the calibrated ATE upper
 endpoint equals the treated upper-cutoff candidate mean minus the control lower-cutoff candidate
 mean, and the calibrated ATE lower endpoint equals the treated lower-cutoff candidate mean

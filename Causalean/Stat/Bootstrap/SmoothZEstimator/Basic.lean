@@ -34,8 +34,8 @@ def zEstimatorSampleScore (psi : E → X → E) (theta : E)
   finMean (fun i ↦ psi theta (x i))
 
 /-- For [an iid sample](hyp:S), [an estimating function](hyp:psi), and [an estimator](hyp:est),
-[the estimator eventually solves its data estimating equation exactly, with probability tending to
-one](goal) when the probability of a nonzero empirical score tends to zero. -/
+[eventual exact solution of the data estimating equation in sampling measure](goal) means the
+sampling measure of outcomes with a nonzero empirical score tends to zero. -/
 def EventuallySolvesEstimatingEquationExactly
     (S : IIDSample Omega X mu P) (psi : E → X → E)
     (est : (n : ℕ) → (Fin n → X) → E) : Prop :=
@@ -57,9 +57,9 @@ def SolvesEstimatingEquationInProbability
     (fun _ ↦ (1 : ℝ)) mu
 
 /-- For [an iid sample](hyp:S), [an estimating function](hyp:psi), and [an estimator](hyp:est),
-[the estimator eventually solves its resampled estimating equation exactly in bootstrap
-probability, in outer sampling probability](goal) when every positive outer tolerance eventually
-has vanishing sampling probability. -/
+[eventual exact solution of the resampled estimating equation in bootstrap probability, measured
+by the outer sampling measure](goal) means that, at every positive threshold, the sampling measure
+of data sets whose bootstrap probability of a nonzero score exceeds that threshold tends to zero. -/
 def BootstrapEventuallySolvesEstimatingEquationExactly
     (S : IIDSample Omega X mu P) (psi : E → X → E)
     (est : (n : ℕ) → (Fin n → X) → E) : Prop :=

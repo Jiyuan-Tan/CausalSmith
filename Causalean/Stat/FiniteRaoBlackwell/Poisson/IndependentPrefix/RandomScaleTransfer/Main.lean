@@ -60,10 +60,10 @@ loss](hyp:loss), [a finite loss bound](hyp:B,hB,hbound), [joint measurability of
 loss](hyp:hloss), [fallback first and second arrays](hyp:fallbackX,fallbackY), [a fallback
 action](hyp:fallbackA), [a raw lower bound](hyp:rawLower,hrawLower), [a scale-error
 budget](hyp:epsScale,hscale0,hscale1), [two Poisson-tail budgets](hyp:epsX,epsY,htailX,htailY),
-[the fixed unequal-pool minimax risk is at least the fuzzy-prior lower bound reduced by the loss
+[the fixed two-pool minimax risk is at least the fuzzy-prior lower bound reduced by the loss
 bound times the total budget](goal).
 
-The intensity multipliers may in particular be chosen proportional to the unequal fixed sample
+The intensity multipliers may in particular be chosen proportional to the potentially unequal fixed sample
 sizes. Exact ordered retention preserves the complete auxiliary iid law rather than merely
 selected auxiliary summaries. -/
 theorem randomScale_twoFuzzy_minimax_lower_transfer

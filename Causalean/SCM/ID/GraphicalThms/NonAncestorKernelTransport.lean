@@ -99,7 +99,7 @@ def QFactorMarginalFixingConclusion
     lies among the observed nodes of the induced model, and the targets are observed
     random nodes not already fixed with no descendants in the second set or its
     induced conditioning-parent set after intervention, the indicated induced and
-    post-intervention conditional kernels are equal at every fixed-value slice,
+    post-intervention conditional kernels are almost everywhere equal under the induced parent marginal at every fixed-value slice,
     provided their stated finite-measure, standard-Borel, nonemptiness, and
     countable-generation conditions hold. It uses [the induced model](step:1),
     the post-intervention model, and the induced conditioning-parent set.

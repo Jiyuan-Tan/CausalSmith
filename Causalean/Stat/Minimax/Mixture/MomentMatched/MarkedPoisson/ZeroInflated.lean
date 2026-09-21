@@ -56,8 +56,9 @@ private theorem integrable_tilt
   rw [Real.norm_eq_abs, abs_of_nonneg hp0]
   exact hp1
 
-/-- The [zero-inflated prior](goal) [reweights a certificate's variation measure by the ratio of
-the shift to shifted mass and places the leftover probability at zero](step:1). It is defined
+/-- The [zero-inflated prior measure](goal) [reweights a certificate's variation measure by the
+nonnegative part of the shift-to-shifted-mass ratio and places at zero the nonnegative
+part of one minus the integral of that ratio](step:1). It is defined
 from [a finite signed certificate](hyp:C) and [a shift parameter](hyp:a).
 
 The shift is an arbitrary real here; the results that need it positive, such as
@@ -206,8 +207,8 @@ theorem integral_sq_zeroInflatedPrior_le
   · have hp0 : 0 ≤ p := (div_pos ha hκ).le.trans hp.1
     simpa [pow_two] using mul_le_mul_of_nonneg_right hp.2 hp0
 
-/-- The [finite-product zero-inflated prior](goal) [independently repeats the scalar
-zero-inflated prior across the coordinates](step:1). It is built from [a finite signed
+/-- The [finite-product zero-inflated prior measure](goal) [takes the product of the scalar
+zero-inflated prior measures across the coordinates](step:1). It is built from [a finite signed
 certificate](hyp:C), [a shift parameter](hyp:a), and [a coordinate count](hyp:k).
 
 As for the scalar version, the shift is an arbitrary real; positivity is a hypothesis of the

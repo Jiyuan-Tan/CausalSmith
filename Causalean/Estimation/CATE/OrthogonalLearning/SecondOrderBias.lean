@@ -64,9 +64,11 @@ assumptions](hyp:hA), with [the true nuisance η₀ lying in the strict-overlap 
 some margin ε > 0](hyp:hε_pos,h_overlap_η₀), fix a convex candidate target class in
 an inner-product space with a real-valued evaluation map, and suppose [θ₀ belongs to
 this class](hyp:θ₀_mem), [every candidate's evaluation is measurable](hyp:eval_meas),
-and [θ₀'s evaluation agrees pointwise with the true value-space CATE](hyp:eval_θ₀).
-Fix a candidate nuisance `h` that [also lies in the strict-overlap band at the same
-margin](hyp:h_overlap_h), a candidate target `θ̂`, and [a nonnegative constant `B`
+[θ₀'s evaluation agrees pointwise with the true value-space CATE](hyp:eval_θ₀),
+and [θ₀ minimizes the true-nuisance population squared pseudo-outcome risk over the
+class](hyp:θ₀_minimizes). Fix [evaluation and nuisance directional-derivative
+bundles](hyp:D,ND) and a candidate nuisance `h` that [also lies in the strict-overlap
+band at the same margin](hyp:h_overlap_h), a candidate target `θ̂`, and [a nonnegative constant `B`
 bounding the evaluation-map directional derivative at `θ̂`](hyp:hB_nonneg,hdEval_bound).
 Assume [the arm-wise outcome-regression fit of `h`](hyp:h_μ_h_int), [the AIPW
 pseudo-outcome discrepancy between `h` and the truth](hyp:h_phi_int), and [that

@@ -481,7 +481,7 @@ theorem minimaxValue_mono_class [Nonempty E] [Nonempty Θ] {risk : E → Θ → 
   minimaxValue_le_minimaxValue hbddBelow
     fun e => ⟨e, worstCaseRisk_mono_class φ (hbdd e) (hle e)⟩
 
-/-- For a map `φ` embedding the parameter class of the first problem into that of the
+/-- For a map `φ` from the parameter class of the first problem to that of the
 second, if [the first problem's risk is nonnegative](hyp:hr), [the second problem's risk is
 nonnegative](hyp:hr'), [each estimator's risk is bounded above across the second parameter
 class](hyp:hbdd), and [the first risk at any model is dominated by the second risk at that

@@ -133,14 +133,14 @@ private theorem normalizeFinite_sub_normalizeFinite_le {ι : Type*} [Fintype ι]
           (mul_le_mul hrev hmX hm.le (show 0 ≤ D from Real.sqrt_nonneg _))
     _ = 2 * D / m := by ring
 
-/-- Apply a candidate projector to a degree-`d` rank-one lift and normalize the resulting lifted
+/-- Apply a candidate matrix to a degree-`d` rank-one lift and normalize the resulting lifted
 direction. With [its explicit inputs](hyp:P,c), [the defined object](goal) is
 [given by the displayed formula](step:1). -/
 noncomputable def recoverRankOneLift {p d : ℕ}
     (P : Matrix (LiftIndex p d) (LiftIndex p d) ℝ) (c : Vec p) : LiftIndex p d → ℝ :=
   normalizeFinite (P.mulVec (fun I => ∏ k, c (I k)))
 
-/-- Given [a reference projector](hyp:P), [a nearby candidate projector](hyp:P'), and
+/-- Given [a reference matrix](hyp:P), [a nearby candidate matrix](hyp:P'), and
 [a factor direction](hyp:c), the candidate recovers the normalized rank-one lift with error at
 most `2 * delta / (1 - delta)`. Under
 [the listed assumptions](hyp:hd,hunit,hfixed,hdelta,hsmall,hclose),

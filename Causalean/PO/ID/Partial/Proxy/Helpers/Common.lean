@@ -47,7 +47,7 @@ For [a sub-σ-algebra `σ_UX` coarser than the ambient σ-algebra](hyp:hσUX),
 `Ya`](hyp:hYa), and [a treatment value `a`](hyp:a), suppose that [`Ya` is
 conditionally independent of `A` given `σ_UX`](hyp:latent_exch), [the factual
 outcome `Y` agrees with `Ya` almost everywhere on `{A = a}`](hyp:consistency),
-[every `σ_UX`-measurable set null on `{A = a}` is globally null](hyp:h_overlap),
+[every ambient-measurable set null on `{A = a}` is globally null](hyp:h_overlap),
 and [`Y` is at most `M` almost everywhere](hyp:hY_le). Then [`Ya` is at most
 `M` almost everywhere](goal).
 
@@ -138,7 +138,8 @@ theorem ae_le_YofA_of_ae_le_Y
 Under [the same sub-σ-algebra relation](hyp:hσUX), [measurable treatment
 map](hyp:hA), [measurable potential outcome](hyp:hYa), [treatment value](hyp:a),
 [conditional independence](hyp:latent_exch), [consistency](hyp:consistency),
-and [overlap](hyp:h_overlap), if [the factual outcome `Y` is at least
+and [the condition that every ambient-measurable set null on `{A = a}` is globally
+null](hyp:h_overlap), if [the factual outcome `Y` is at least
 `M` almost everywhere](hyp:hY_ge), then [the potential outcome `Ya` is at least
 `M` almost everywhere](goal). -/
 theorem ae_le_YofA_of_ae_le_Y_below

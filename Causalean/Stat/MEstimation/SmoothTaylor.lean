@@ -25,7 +25,8 @@ variable {Θ V : Type*}
   [NormedAddCommGroup Θ] [NormedSpace ℝ Θ]
   [NormedAddCommGroup V] [NormedSpace ℝ V]
 
-/-- For [a Banach-space-valued function and its derivative field](hyp:f,D),
+/-- For [a function between normed real vector spaces and its derivative
+field](hyp:f,D),
 [a center and comparison point](hyp:θ₀,θ), suppose [the derivative field is the
 Fréchet derivative everywhere](hyp:hD), [its changes on a closed ball are
 bounded by a nonnegative Lipschitz constant](hyp:hLnonneg,hLbound), and [the

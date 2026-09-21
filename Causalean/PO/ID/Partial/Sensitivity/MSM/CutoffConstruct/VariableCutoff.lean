@@ -456,7 +456,7 @@ Assume [the treated propensity score is almost surely strictly between zero and 
 (two-sided overlap)](hyp:hoverlap), that [the treated-arm conditional law of the
 outcome given covariates is atomless, i.e. its conditional CDF is continuous](hyp:hatomless), and
 that [the calibration quantile level lies strictly between 0 and 1 almost everywhere](hyp:hlevel).
-Then [there exists a σ(X)-measurable cutoff function `c` such that the treatment-weighted
+Then [there exists an ambient-measurable cutoff function `c` such that the treatment-weighted
 conditional survival function at `c` agrees almost everywhere with the target survival function
 `survTarget Λ`](goal); the cutoff is realized as the conditional quantile of the treated outcome
 law at the calibration level. -/
@@ -541,9 +541,9 @@ treated propensity
 score](hyp:hoverlap), that [the treated-arm conditional outcome law given covariates is atomless,
 i.e. its conditional CDF is continuous](hyp:hatomless), that [the calibration quantile level lies
 strictly between 0 and 1 almost everywhere](hyp:hlevel). If [every
-σ(X)-measurable cutoff satisfies the integrability conditions needed for the calibration and
+ambient-measurable cutoff satisfies the integrability conditions needed for the calibration and
 optimality arguments](hyp:hreg), then
-[there exists a σ(X)-measurable cutoff function whose induced quantile-cutoff propensity is
+[there exists an ambient-measurable cutoff function whose induced quantile-cutoff propensity is
 calibrated-feasible, at which the calibrated (supremum) upper bound for `E[Y(1)]` equals the candidate
 mean](goal).
 

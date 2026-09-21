@@ -59,8 +59,9 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 [a CATE estimation system](hyp:S) satisfying [backdoor identification](hyp:hA), take
 [a target Hilbert space](hyp:Θ), [a convex constraint set](hyp:Θ_set,Θ_convex),
 [a target parameter](hyp:θ₀) [in that set](hyp:θ₀_mem), and
-[an evaluation functional](hyp:eval) that [is measurable](hyp:eval_meas),
-[recovers the true CATE](hyp:eval_θ₀), and [is minimized at the target](hyp:θ₀_minimizes).
+[an evaluation functional](hyp:eval) that [is measurable](hyp:eval_meas) and
+[recovers the true CATE](hyp:eval_θ₀). Assume [the target minimizes the associated
+true-nuisance population squared-loss risk](hyp:θ₀_minimizes).
 Given [an IID sample](hyp:S_iid), [a one-shot split](hyp:split),
 [an overlap level](hyp:ε) that [is positive](hyp:hε_pos), and
 [a true nuisance in the overlap slice](hyp:h_overlap_η₀), fix

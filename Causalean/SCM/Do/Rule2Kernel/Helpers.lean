@@ -48,7 +48,7 @@ open scoped MeasureTheory ProbabilityTheory
 -- Their composition is `fillZrW`.
 -- ============================================================
 
-/-- For [a set of treatment-variable names](hyp:Z) and [an assignment to their intervention copies](hyp:z), the [intervention-to-random value map](goal) is the assignment to the corresponding observed random copies that [for a random copy returns the value of its matching intervention copy](step:1) and has no possible fixed-copy case](step:2).
+/-- For [a set of treatment-variable names](hyp:Z) and [an assignment to their intervention copies](hyp:z), the [intervention-to-random value map](goal) is the assignment to the corresponding random copies that [for a random copy returns the value of its matching intervention copy](step:1) and has no possible fixed-copy case](step:2).
 
 It reuses the shared base-node value space of each fixed and random copy; the
 fixed-node branch is unreachable for the requested random-node output. -/
@@ -72,7 +72,7 @@ noncomputable def zFixedAsRandom {Z : Finset N}
 -- over an arbitrary finite index) and are used here at `M := SWIGNode N`.
 
 omit [Fintype N] in
-/-- Reading intervention values as observed random-variable values is a measurable operation.
+/-- Reading intervention values as random-copy values is a measurable operation.
 
 At every output coordinate the map is just a coordinate projection of the input
 fixed-value assignment. -/
@@ -85,11 +85,11 @@ lemma measurable_zFixedAsRandom {Z : Finset N} :
   -- v = SWIGNode.random D; output is `z ⟨.fixed D, _⟩`
   exact measurable_pi_apply _
 
-/-- For [a structural causal model](hyp:M'), [a set of treatment-variable names](hyp:Z), [the condition that each corresponding random copy is observed](hyp:hZ_obs), [the condition that none of their fixed copies is already fixed](hyp:hZ_fixed), [a set of free conditioning nodes](hyp:W), and [a fixed-value assignment for the model after fixing those treatments](hyp:s'), the [Rule 2 filler](goal) maps each free conditioning assignment to an assignment on the union of the treatment random copies and free nodes, inserting the treatment values from the fixed-value assignment.
+/-- For [a structural causal model](hyp:M'), [a set of treatment-variable names](hyp:Z), [the condition that each corresponding random copy is observed](hyp:hZ_obs), [the condition that none of their fixed copies is already fixed](hyp:hZ_fixed), [a set of conditioning nodes](hyp:W), and [a fixed-value assignment for the model after fixing those treatments](hyp:s'), the [Rule 2 filler](goal) maps each conditioning assignment to an assignment on the union of the treatment random copies and conditioning nodes, inserting the treatment values from the fixed-value assignment; on any overlap, the treatment values take priority.
 
 It reads the fixed treatment values from the post-intervention fixed slice,
 relabels them as observed random treatment values, and combines them with the
-free conditioning coordinates. -/
+conditioning coordinates, with the treatment values taking priority on any overlap. -/
 noncomputable def fillZrW
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
@@ -146,10 +146,9 @@ theorem measurable_fillZrW_prod (M' : Causalean.SCM N Ω) (Z : Finset N)
   exact measurable_zFixedAsRandom.comp
     ((measurable_valuesProjection _).comp measurable_fst)
 
-/-- For [a set of treatment-variable names](hyp:X) and [an assignment to their observed random copies](hyp:t), the [random-to-intervention value map](goal) is the assignment to the corresponding intervention copies that [for an intervention copy returns the value of its matching observed random copy](step:1) and has no possible random-copy case](step:2).
+/-- For [a set of treatment-variable names](hyp:X) and [an assignment to their random copies](hyp:t), the [random-to-intervention value map](goal) is the assignment to the corresponding intervention copies that [for an intervention copy returns the value of its matching random copy](step:1) and has no possible random-copy case](step:2).
 
-It is the mirror image of the map from fixed intervention values to random
-observed values. -/
+It is the mirror image of the map from fixed intervention values to random-copy values. -/
 noncomputable def xRandomAsFixed {X : Finset N}
     (t : ValuesOn (X.image SWIGNode.random) (swigΩ Ω)) :
     ValuesOn (X.image SWIGNode.fixed) (swigΩ Ω) := fun ⟨v, hv⟩ =>

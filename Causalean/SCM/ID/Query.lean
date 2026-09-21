@@ -101,8 +101,7 @@ def interventionalQueryValid
 
 /-- For [a finite population of variables](hyp:N) with [nonempty measurable value spaces](hyp:Ω),
 [an intervention set](hyp:X), and [an outcome-node set](hyp:Y), [the interventional
-query](goal) maps each structural causal model to its post-intervention outcome kernel
-when the query is valid, and otherwise to the default constant kernel.
+query](goal) maps each structural causal model to its post-intervention outcome kernel at a chosen default assignment of the model's fixed values when the query is valid, and otherwise to the default constant kernel.
 
 The interventional query returns the post-intervention outcome law as a
 kernel indexed by treatment values.
@@ -130,7 +129,7 @@ noncomputable def interventionalQuery [∀ n, Nonempty (Ω n)]
 /-- For [treatment nodes `X` and outcome nodes `Y` satisfying the well-formedness
 conditions for a valid interventional query in a model `M`](hyp:h), [the total
 interventional query evaluated at `M` equals the post-intervention
-outcome-marginal kernel `doKernelY`](goal). -/
+outcome-marginal kernel `doKernelY` at the chosen default fixed-value assignment](goal). -/
 lemma interventionalQuery_eq_doKernelY_of_valid [∀ n, Nonempty (Ω n)]
     (X : Finset N) (Y : Finset (SWIGNode N)) (M : Causalean.SCM N Ω)
     (h : interventionalQueryValid X Y M) :

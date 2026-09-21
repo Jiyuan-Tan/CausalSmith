@@ -63,20 +63,21 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-- [Class-level asymptotic equicontinuity](goal) means that every fixed
 empirical-process tolerance is met uniformly on a sufficiently small parameter
-ball, with arbitrarily high eventual probability.  It concerns [a score
+ball, with arbitrarily small eventual sampling measure.  It concerns [a score
 family](hyp:ψ) around [a reference parameter](hyp:θ₀), sampled by [an i.i.d.
-sequence](hyp:S) under [population and sample-space probability
+sequence](hyp:S) under [population and sample-space
 measures](hyp:P,μ).
 
-For every `ε > 0` and every probability tolerance `η > 0` there is a ball radius
-`δ > 0` such that, eventually in `n`, the probability that the centered
+For every `ε > 0` and positive measure tolerance `η` there is a ball radius
+`δ > 0` such that, eventually in `n`, the sampling measure of the event that the centered
 empirical process `Gₙ(ψ(θ,·) − ψ(θ₀,·))` exceeds `ε` for **some** `θ` in the
 `δ`-ball is at most `η`:
 
     ∀ ε > 0, ∀ η > 0, ∃ δ > 0, ∀ᶠ n,
       μ {ω | ∃ θ, ‖θ − θ₀‖ < δ ∧ ε < ‖Gₙ(ψ(θ,·) − ψ(θ₀,·))(ω)‖} ≤ η.
 
-This is the standard double-limit asymptotic equicontinuity
+When both measures are probability measures, this is the standard double-limit
+asymptotic equicontinuity
 `lim_{δ→0} limsup_n P*(sup_{‖θ−θ₀‖<δ} |Gₙ| > ε) = 0` (van der Vaart 1998,
 §19.2), phrased with an existential over `θ` rather than a (possibly
 non-measurable) supremum so that the outer-measure bookkeeping is automatic.
@@ -96,8 +97,9 @@ omit [FiniteDimensional ℝ V] [MeasurableSpace V] [BorelSpace V] in
 equicontinuous at `θ₀` along the i.i.d. sample `S`](hyp:hAEC) and [`θn` is a sequence of
 estimators consistent for `θ₀`](hyp:hConsistent), then for [any fixed tolerance `ε > 0`](hyp:hε),
 [the centered empirical process of the score gap `ψ(θn,·) − ψ(θ₀,·)`, evaluated at the random
-estimator `θn`, namely `Gₙ(ψ(θn,·) − ψ(θ₀,·))`, converges to `0` in probability —
-unconditionally, with no restriction to a shrinking neighborhood of `θ₀`](goal).
+estimator `θn`, namely `Gₙ(ψ(θn,·) − ψ(θ₀,·))`, exceeds `ε` on an
+event whose sampling measure tends to zero, without restricting the estimator
+to a shrinking neighborhood of `θ₀`](goal).
 
 This is the substantive conclusion; `StochEquicontAt` is an immediate corollary.
 The proof is the textbook union bound: split on `{‖θn − θ₀‖ ≥ δ}` (small by
@@ -158,7 +160,7 @@ The Z-estimator and GMM CLTs (`zEstimator_asymLinear`, `oracleGMM_asymLinear`)
 take `StochEquicontAt` as a hypothesis.  This theorem discharges it from the
 two clean ingredients it actually decomposes into: the Donsker / asymptotic-
 equicontinuity property of the score family (`AsymptoticEquicont`, independent
-of `θn`) and consistency `θn →_p θ₀`.  Any `δ` works since
+of `θn`) and consistency of `θn` in sampling measure. Any `δ` works since
 `empProcVec_atEstimator_tendsto_zero` already gives the *unconditional* vanishing
 of the gap. -/
 theorem stochEquicontAt_of_asymptoticEquicont

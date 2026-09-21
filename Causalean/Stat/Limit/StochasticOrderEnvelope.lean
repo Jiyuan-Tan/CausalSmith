@@ -89,10 +89,11 @@ theorem IsBigOp.of_sqEnvelope
     _ ≤ cn n ω := hb
     _ ≤ |cn n ω| := le_abs_self _
 
-/-- **Square-envelope `o_p` lemma.** If [the rate is eventually positive](hyp:hrn),
-[`X_n²` is bounded above by `c_n` almost surely](hyp:hbound), and
-[`c_n = o_p(r_n²)`](hyp:hcn_LittleOp), then [`X_n = o_p(r_n)`](goal). Positivity permits
-squaring the tail threshold. -/
+/-- **Square-envelope stochastic little-o lemma.** Under a sampling measure, if [the rate is
+eventually positive](hyp:hrn), [`X_n²` is bounded above by `c_n` almost everywhere](hyp:hbound),
+and [`c_n` is stochastic little-o of `r_n²` in that measure](hyp:hcn_LittleOp), then [`X_n` is
+stochastic little-o of `r_n` in the same measure](goal). Positivity permits squaring the tail
+threshold. -/
 theorem IsLittleOp.of_sqEnvelope
     {Xn : ℕ → Ω → ℝ} {cn : ℕ → Ω → ℝ} {rn : ℕ → ℝ}
     (hrn : ∀ᶠ n in atTop, 0 < rn n)
@@ -362,8 +363,8 @@ Then [the integrated absolute product is little-o at the product rate](goal).
 
 The positive-norm condition is load-bearing rather than cosmetic: the conclusion is stated at the
 rate `sn * ‖g‖₂`, and a little-o claim at a rate that is zero asserts that the whole space has
-measure tending to zero. Eventual positivity of `sn` itself needs no hypothesis — it follows from
-`hfn_rate`, since the little-o predicate is unsatisfiable at a non-positive rate. -/
+measure tending to zero. No separate sign condition on `sn` is needed: the theorem works
+directly with the supplied little-o predicate, including when the ambient measure is zero. -/
 theorem integral_abs_mul_op_of_eLpNorm_op
     {fn : ℕ → Ω → X → ℝ} {g : X → ℝ}
     (hfn_memLp : ∀ n ω, MemLp (fn n ω) 2 ν)

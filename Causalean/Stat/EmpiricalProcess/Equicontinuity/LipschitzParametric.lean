@@ -558,8 +558,8 @@ namespace AsymptoticEquicont
 For [a population law](hyp:P), [iid sample](hyp:S), [vector score](hyp:ψ),
 [nonnegative envelope](hyp:L), [score and envelope measurability](hyp:hψmeas,hLmeas),
 [envelope nonnegativity and square integrability](hyp:hL,hL2), [target](hyp:θ₀), [a positive
-radius](hyp:hδ₀), and [Lipschitz control on the ball of that radius](hyp:hLip), [the local
-empirical-process modulus vanishes in probability](goal).
+radius](hyp:hδ₀), and [Lipschitz control on the ball of that radius](hyp:hLip), [the score family is asymptotically
+equicontinuous at the target under the sampling measure](goal).
 
 The Lipschitz hypothesis is only required on a ball around the target, not on the whole
 parameter space: asymptotic equicontinuity chooses its own radius and its event is monotone
@@ -680,8 +680,10 @@ score](hyp:ψ), [nonnegative envelope](hyp:L), [score and envelope
 measurability](hyp:hψmeas,hLmeas), [envelope nonnegativity and square
 integrability](hyp:hL,hL2), [target](hyp:θ₀), [a positive radius](hyp:hδ₀), [Lipschitz
 control on the ball of that radius](hyp:hLip), [estimator sequence](hyp:θn), and
-[consistency](hyp:hConsistent), [the empirical score increment at the estimator is
-`o_P(1)`](goal).
+[consistency](hyp:hConsistent), [the estimator-indexed
+stochastic equicontinuity condition holds: for each positive threshold, some target
+neighborhood makes the sampling measure of a larger centered score increment there tend
+to zero](goal).
 
 As with the class-level statement, the Lipschitz bound is needed only near the target, which
 is what lets locally-Lipschitz scores such as the Poisson score be used here. -/

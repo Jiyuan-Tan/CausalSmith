@@ -197,8 +197,7 @@ lemma measure_map_prefixIn_absolutelyContinuous_jointRef
 space](hyp:μ), and [reference measures](hyp:ref), assuming every graph-ordered singleton
 node value space is standard Borel and nonempty, [the Tian prefix density product](goal) at
 [a prefix length and an assignment on that prefix](hyp:k) is one [at length zero](step:1) and
-otherwise [the preceding product times the next conditional-density factor, or one when that
-next index is outside the node set](step:2).
+otherwise [the preceding product multiplied by the next conditional-density factor, with that factor taken as one when its index is outside the node set](step:2).
 
 Recursive Tian prefix density product on an intermediate prefix. -/
 noncomputable def tianPrefixDensityProductInPrefix

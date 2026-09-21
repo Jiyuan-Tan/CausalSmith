@@ -51,11 +51,11 @@ noncomputable def marginalizeOnObserved [∀ n, Fintype (Ω n)]
   fun x => ∑ y : ValuesOn W (swigΩ Ω), q (overrideOn x y)
 
 /-- For [a population of variables](hyp:N) with [finite value spaces](hyp:Ω),
-[an observed-node set](hyp:O), [a SWIG graph](hyp:G'), [an ancestral node set](hyp:A),
-[a target district](hyp:C') [contained in the observed set](hyp:hA), and [a nonnegative
+[an observed-node set](hyp:O), [a SWIG graph](hyp:G'), [a node set](hyp:A) [contained in the observed set](hyp:hA),
+[a target node set](hyp:C'), and [a nonnegative
 mass function on observed assignments](hyp:q), [the observed-set district-extraction
 functional](goal) is the product of the successive marginal-ratio factors indexed by
-the graph order of nodes in the target district.
+the graph order of nodes in the target set.
 
 Observed-set form of `SCM.extractDistrict`. -/
 noncomputable def extractDistrictObserved [∀ n, Fintype (Ω n)]
@@ -72,7 +72,7 @@ noncomputable def extractDistrictObserved [∀ n, Fintype (Ω n)]
 
 /-- For [a population of variables](hyp:N) with [finite value spaces](hyp:Ω),
 [an observed-node set](hyp:O), [a SWIG graph](hyp:G), [a containing node set](hyp:T),
-[a target district](hyp:C) [contained in the observed set](hyp:hT), and [a nonnegative
+[a target node set](hyp:C) with [the containing set observed](hyp:hT), and [a nonnegative
 mass function on observed assignments](hyp:q), [the recursive observed-set mass
 identification functional](goal) first [forms the induced ancestral set and records that
 it is observed](step:1,step:2), then returns the appropriate marginal, original mass,
@@ -177,7 +177,7 @@ lemma identifyMassRecObserved_eq_identifyMassRec [∀ n, Fintype (Ω n)]
 
 /-- For [a finite population of variables](hyp:N) with [measurable value spaces](hyp:Ω),
 [a structural causal model](hyp:M), [reference measures](hyp:ref), [a fixed-value
-assignment](hyp:s), [a containing c-component](hyp:C), and [a target district](hyp:S),
+assignment](hyp:s), [a proposed containing node set](hyp:C), and [a target node set](hyp:S),
 assuming finite value spaces, finite observational-kernel slices, standard-Borel and nonempty
 one-node observed value spaces, and countably generated prefix value spaces, [the recursively
 recovered factor](goal) assigns to every observed-data realization the recursive identification

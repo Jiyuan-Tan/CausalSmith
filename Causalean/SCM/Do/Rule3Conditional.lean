@@ -218,7 +218,7 @@ theorem do_rule3_star_conditional_condDistrib
     nodes is an ancestor, in the intervention SWIG graph, of any node in
     `Y ∪ W`](hyp:hNoDesc), then at [a post-intervention fixed assignment](hyp:s'),
     [for almost every value `w` of `W` under the
-    intervened model's `W`-marginal, the `Y`-given-`W` conditional kernel of the
+    base model's `W`-marginal, the `Y`-given-`W` conditional kernel of the
     model intervened at `do(Z)` equals the `Y`-given-`W` conditional kernel of the
     base model, both evaluated at the corresponding fixed values](goal).
 

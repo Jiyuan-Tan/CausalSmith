@@ -26,11 +26,11 @@ is [the real Euclidean space of functions on that uniform slice](step:1). -/
 abbrev SliceFn (n M : ℕ) := EuclideanSpace ℝ (Omega n M)
 
 /-- For [a first slice function](hyp:f) and [a second slice function](hyp:g), [the uniform-slice inner product](goal)
-is [the average of their pointwise products over all slice points](step:1). -/
+is [the average of their pointwise products over all slice points, defined as zero when the slice is empty](step:1). -/
 noncomputable def sliceInner (f g : SliceFn n M) : ℝ :=
   (Fintype.card (Omega n M) : ℝ)⁻¹ * ∑ A, f A * g A
 
-/-- For [a slice function](hyp:f), [its uniform mean](goal) is [the average of its values over the slice](step:1). -/
+/-- For [a slice function](hyp:f), [its uniform mean](goal) is [the average of its values over the slice, defined as zero when the slice is empty](step:1). -/
 noncomputable def mean (f : SliceFn n M) : ℝ :=
   (Fintype.card (Omega n M) : ℝ)⁻¹ * ∑ A, f A
 

@@ -93,11 +93,11 @@ the true CATE at a parameter θ₀ in the constraint set](hyp:θ₀_mem,eval_mea
 while the nuisance's propensity score satisfies ε-overlap](hyp:hM_Θ,hM_Y,hM_μ,hOverlap). Assume
 [the centred DR-loss is continuous in θ, a clamped version of θ₀ minimizes it, its population
 Rademacher complexity along a dense index sequence is controlled by a sub-root envelope ψ with
-respect to a seminorm that is invariant under almost-everywhere modification, with an explicit
+respect to a localization functional that is invariant under almost-everywhere modification, with an explicit
 Rademacher upper bound on that dense indexed class](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
 control of the centred loss increments — nonnegative Lipschitz constant L, a diameter bound Rmax
 and positive critical radii](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos), [a nonnegative
-localization norm and its variance proxy](hyp:hnorm_nonneg,hvariance), plus [boundedness and
+localization functional and its variance proxy](hyp:hnorm_nonneg,hvariance), plus [boundedness and
 integrability of the empirical star-hull Rademacher process needed by the localization
 bridge](hyp:hrad_bdd,hrad_int) and [a confidence level in $(0,1]$ together with the
 Foster–Syrgkanis critical-radius domination inequality at one covering dyadic

@@ -31,7 +31,7 @@ assigns to every vertex a real-valued function on full coordinate assignments. -
 abbrev Accessor (V : Type uV) (X : V → Type uX) := V → (∀ k : V, X k) → ℝ
 
 /-- [Factor `i` does not depend on coordinate `j`](goal) for [a real factor accessor](hyp:factor):
-changing [the parent coordinate](hyp:j) never changes [the child factor](hyp:i), whatever the rest
+changing [coordinate `j`](hyp:j) never changes [factor `i`](hyp:i), whatever the rest
 of the assignment. -/
 def FactorIndependentOf (factor : Accessor V X) (i j : V) : Prop :=
   ∀ (x : ∀ k, X k) (xj : X j), factor i (Function.update x j xj) = factor i x

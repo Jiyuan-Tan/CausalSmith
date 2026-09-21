@@ -31,7 +31,7 @@ namespace SCM
 
 open scoped MeasureTheory
 
-/-- For [two sets of graph nodes](hyp:A) that are [disjoint](hyp:hDisj), the [value-assignment equivalence for their union](goal) is a measurable bijection between assignments on their union and pairs consisting of an assignment on each set.
+/-- For [two sets of graph nodes](hyp:A,B) that are [disjoint](hyp:hDisj), the [value-assignment equivalence for their union](goal) is a measurable bijection between assignments on their union and pairs consisting of an assignment on each set.
 
 The forward map projects to each part and the inverse recombines them; disjointness
 ensures the first part's priority cannot overwrite the second part. -/

@@ -153,7 +153,7 @@ lemma induce_parents_eq_of_ancClosed (M : Causalean.SCM N Ω)
     refine (M.toSWIGGraph.induce R).dag.mem_parents.mpr ?_
     exact ⟨huEdge, huActive, hvActive⟩
 
-/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a set of graph nodes](hyp:R), and [the condition that this set is ancestrally closed in the SCM sense](hyp:hR), the [induced structural causal submodel](goal) retains the selected observed and fixed nodes and precisely the original latent roots feeding retained observed nodes. It is defined [from the induced SWIG graph](step:1), inheriting the relevant value spaces, structural functions, and latent distributions.
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a set of graph nodes](hyp:R), and [the condition that this set is ancestrally closed in the SCM sense](hyp:hR), the [induced structural causal submodel](goal) retains the observed nodes in `R`, the original fixed nodes whose random counterparts remain observed, and precisely the original latent roots feeding retained observed nodes. It is defined [from the induced SWIG graph](step:1), inheriting the relevant value spaces, structural functions, and latent distributions.
 
     The induced sub-SCM for an ancestrally closed node set keeps the observed
     and fixed parts selected by the induced SWIG graph and keeps exactly the
@@ -285,7 +285,7 @@ lemma induce_latentProduct_eq_map (M : Causalean.SCM N Ω) (R : Finset (SWIGNode
 /-- **Evaluation-map bridge** for the induced sub-SCM. Fix a structural causal model `M` and a
     node set `R` that is [ancestrally closed in the SCM sense](hyp:hR). Then at every random
     node `v` retained by the induced model `M.induce R hR`, [the induced evaluation map at the
-    restriction of `sTilde` to `R` and the projected latent assignment computes the same value
+    restriction of `sTilde` to the induced model's fixed nodes and the projected latent assignment computes the same value
     as the original evaluation map at `sTilde`](goal).
 
     Proof by strong recursion on the induced `observedIndex` of `v` (for the observed
@@ -462,7 +462,7 @@ lemma induce_evalMap_compat (M : Causalean.SCM N Ω) (R : Finset (SWIGNode N))
 /-- **Marginal compatibility of the induced sub-SCM** (`prop:scm-induced-marginal`). Fix a
     structural causal model `M`, [an ancestrally closed node set `R`](hyp:hR), and a
     fixed-value assignment `sTilde` on `M`. Then [the observational kernel of the induced
-    sub-SCM at the restriction of `sTilde` to `R` equals the pushforward of `M`'s observational
+    sub-SCM at the restriction of `sTilde` to its retained fixed nodes equals the pushforward of `M`'s observational
     kernel at `sTilde` onto the induced observed coordinates `R ∩ M.observed`](goal).
 
     For any ancestrally closed `R ⊆ V ∪ S ∪ L` and any extension

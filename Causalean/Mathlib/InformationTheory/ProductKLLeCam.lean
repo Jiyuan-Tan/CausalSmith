@@ -412,7 +412,11 @@ theorem ProductKLTensorizationBound.one_ne_top {α : Type*} [MeasurableSpace α]
     _root_.InformationTheory.klDiv μ ν ≠ ∞ :=
   h.2.1
 
-/-- Deprecated information-theory spelling of the probability-layer theorem
+/-- If [one sampling measure is absolutely continuous with respect to another](hyp:hμν),
+then [their finite independent product measures satisfy the same relation](goal) for every
+product length.
+
+Deprecated information-theory spelling of the probability-layer theorem
 `ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous`. -/
 @[deprecated Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous
   (since := "2026-09-19")]

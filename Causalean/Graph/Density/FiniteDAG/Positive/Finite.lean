@@ -53,8 +53,9 @@ variable {G : DAG V} (M : PositiveFiniteDAGMechanism G X)
 common positive-factor accessor](goal). -/
 abbrev factorAccessor : PositiveFactor.Accessor V X := M.factor
 
-/-- The strictly positive minimum of [all local factor values](hyp:M) is [a common finite-state
-factor lower bound](goal). -/
+/-- For [a positive finite-state mechanism](hyp:M), [a common strictly positive lower bound
+for its local factors](goal) is their minimum when the vertex set is nonempty, and is one
+when it is empty. -/
 def factorLower (M : PositiveFiniteDAGMechanism G X) : ℝ := by
   classical
   exact if hV : Nonempty V then
@@ -414,9 +415,9 @@ theorem conditionalMass_given_parents (i : V) (x : ∀ i, X i) (z : X i) :
   rw [hreal]
   exact mul_div_cancel_right₀ _ (ne_of_gt (M.marginalMass_pos (G.parents i) x))
 
-/-- [Two coordinates](hyp:i,j) are [conditionally independent given a set of other
-coordinates](hyp:C) under [the finite mechanism's counting-factorization observational
-law](hyp:M) exactly when [their conditional law factorizes](goal). -/
+/-- Under [the finite mechanism's counting-factorization observational law](hyp:M),
+[coordinates `i` and `j`](hyp:i,j) satisfy [conditional independence given the coordinates
+in `C`](goal) for [any conditioning set `C`](hyp:C). -/
 def CondIndepCoordinates (i j : V) (C : Finset V) : Prop :=
   letI : ∀ k, MeasurableSpace (X k) := fun _ ↦ ⊤
   letI : ∀ k, TopologicalSpace (X k) := fun _ ↦ ⊥

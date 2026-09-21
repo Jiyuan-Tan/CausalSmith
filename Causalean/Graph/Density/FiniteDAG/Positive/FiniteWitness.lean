@@ -60,9 +60,9 @@ theorem EdgeWitness.eventually_nonzero {i j : V} (w : M.EdgeWitness i j) :
   intro N hclose
   exact hopen N.factorAccessor hclose
 
-/-- A [positive finite-state DAG mechanism](hyp:M) and [a nonzero local-contrast witness for
-each directed edge](hyp:w) have [one positive uniform factor neighborhood in which all edge
-conditional dependences persist](goal). -/
+/-- A [positive finite-state DAG mechanism](hyp:M) with [a nonzero local-contrast witness for
+each directed edge](hyp:w) has [one positive uniform factor neighborhood in which every parent
+and child remain conditionally dependent given the child's other parents](goal). -/
 theorem all_edge_witnesses_open
     (w : ∀ i j, G.edge j i → M.EdgeWitness i j) :
     ∃ ε > 0, ∀ N : PositiveFiniteDAGMechanism G X,

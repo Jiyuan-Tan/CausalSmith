@@ -74,8 +74,9 @@ envelope](hyp:hB_nonneg,hdEval_unif,h_μ_h_int,h_phi_int,h_phiw_int) and [contro
 nuisance-error terms entering the second-order bias
 decomposition](hyp:hΔμ_memLp,hΔe_memLp,hA_int,hB_int). Then [for every sample fold n, with
 probability at least 1-δ the squared estimation error of the DR-Learner is bounded by an
-oracle/Rademacher term plus an explicit second-order product-bias term
-`(2B/ε)·Σ_a ‖Δμ_a‖₂·‖Δe‖₂` in the two nuisance L²-errors, plus an optimization slack](goal).
+oracle/Rademacher term plus the second-order product-bias contribution
+`(4/σ)·(2B/ε)·Σ_a ‖Δμ_a‖₂·‖Δe‖₂` in the two nuisance L²-errors, plus the
+optimization contribution `(4/σ)·r_opt n`](goal).
 
 Same setup as `oracle_inequality_drLearner_fixed_nuisance_highProb`, but with the
 directional-derivative bundles fixed to the closed-form `drMixedDirDeriv` family

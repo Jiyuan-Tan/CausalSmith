@@ -142,9 +142,7 @@ absolute weights sum to at most `c_n`](hyp:hWeights). Then [the absolute smoothe
 g (evaluated on the γ-component of the data) at x is bounded by `c_n` times the weighted
 L¹ norm of `g ∘ xs.1`](goal).
 
-The LaTeX statement is
-
-  ̂E_{n,B}{g(Z) | X = x} ≤ c_n · ‖g‖_{w,1}.
+In compact notation, `|Ē_{n,B}[g(Z) | X = x]| ≤ c_n · ‖g‖_{w,1}`.
 
 The `g` argument in `evalAt` lives on data tuples `γ × Bool × ℝ`; here we
 look at its `γ`-component, hence `(fun z => g z.1)`. -/

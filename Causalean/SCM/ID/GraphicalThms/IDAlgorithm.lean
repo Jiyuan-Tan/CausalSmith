@@ -521,7 +521,7 @@ observational kernels](hyp:hpos₁,hpos₂), and [have heterogeneously equal obs
 kernels](hyp:_hobs), if [the total interventional query on outcome set `Y` under intervention
 `X` is well formed in both models](hyp:hvalid₁,hvalid₂) and `X`, `Y` have a successful
 no-fixing ID certificate on `G`, then [the two models' post-intervention outcome kernels for
-`Y` are heterogeneously equal](goal).
+`Y` are equal at their chosen default fixed-value assignments](goal).
 
 Deep analytic core isolated from `id_sound`: for two finite node-space gSCMs
 sharing the SWIG graph `G`, dominated by the same faithful reference and

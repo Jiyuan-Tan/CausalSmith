@@ -330,12 +330,9 @@ lemma measurable_indD (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n →
 [contain only the initial state at cutoff zero](step:1) and [recursively add each prior
 treatment and the next state at a positive cutoff](step:2).
 
-The history bundle at stage cutoff `k` is the factual tuple
-`(S 0, D 0, S 1, D 1, ..., S (k-1), D (k-1), S k)`. At `k = 0` it is the
-singleton `(S 0,)`.
-
-Matches the old two-stage convention (`historyBundle₁ = (S₁,)`,
-`historyBundle₂ = (S₁, D₁, S₂)`). Requires `k < n` since we reference `S k`. -/
+The history bundle at stage cutoff `k` stores the factual tuple newest first:
+`(S k, D (k-1), S (k-1), ..., D 0, S 0)`. At `k = 0` it is the
+singleton `(S 0,)`. The cutoff must satisfy `k < n` because the tuple includes `S k`. -/
 noncomputable def historyBundle (S : POLongitudinalPathSystem P n δ γ) :
     (k : ℕ) → k < n → POCFBundle P
   | 0, h =>

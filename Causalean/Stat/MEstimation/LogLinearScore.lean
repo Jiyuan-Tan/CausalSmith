@@ -37,12 +37,12 @@ open Set
 
 /-- For [a parameter](hyp:θ) and [an observation consisting of a regressor and an
 outcome](hyp:z), the [log-link Poisson score](goal) is the regressor times the outcome's
-deviation from its conditional mean `exp (θ x)`. -/
+deviation from the modeled mean `exp (θ x)`. -/
 noncomputable def logLinearScore (θ : ℝ) (z : ℝ × ℝ) : ℝ :=
   (z.2 - Real.exp (θ * z.1)) * z.1
 
 /-- For [a parameter](hyp:θ) and [an observation](hyp:z), the [parameter derivative of the
-log-link Poisson score](goal) is minus the conditional mean times the squared regressor. -/
+log-link Poisson score](goal) is minus the modeled mean times the squared regressor. -/
 noncomputable def logLinearScoreDeriv (θ : ℝ) (z : ℝ × ℝ) : ℝ :=
   -(Real.exp (θ * z.1) * z.1 ^ 2)
 

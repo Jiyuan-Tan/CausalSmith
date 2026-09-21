@@ -20,8 +20,8 @@ namespace NormalizedFiniteSignedMomentCertificate
 
 variable {ι : Type*} [Fintype ι] {L : ℕ}
 
-/-- The [product marked-Poisson predictive law](goal) [independently repeats the one-coordinate
-predictive law across a fixed number of coordinates](step:1). Its inputs are [a finite signed
+/-- The [product marked-Poisson predictive measure](goal) [takes the finite product of the
+one-coordinate predictive measure across the chosen coordinates](step:1). Its inputs are [a finite signed
 certificate](hyp:C), [the coordinate count](hyp:k), [overlap](hyp:ε), [shift](hyp:a), [labeled
 and auxiliary intensities](hyp:u,v), and [an outcome-mark branch](hyp:branch).
 

@@ -24,7 +24,7 @@ open Filter MeasureTheory ProbabilityTheory Topology
 variable {Ω : ℕ → Type*} {mΩ : (n : ℕ) → MeasurableSpace (Ω n)}
   {μ : (n : ℕ) → Measure (Ω n)}
 
-/-- If [measurable real row variables](hyp:hMeas) [converge in probability to a
+/-- If [real row variables measurable almost everywhere](hyp:hMeas) [converge in probability to a
 constant](hyp:hTendsto), [the bound is nonnegative](hyp:hB), and [their absolute
 deviations are uniformly bounded almost everywhere](hyp:hBound), then [their
 expected absolute deviations tend to zero](goal). The probability spaces may

@@ -470,7 +470,7 @@ theorem plr_dml_feasible_tendstoNormal_of_jacobianConsistency
 
 /-- **Feasible one-shot partially linear asymptotic normality from nuisance and
 Jacobian-increment rates.**
-For [a partially linear system on a finite probability space with measurable covariates](hyp:P,γ,S),
+For [a partially linear system on a probability space with measurable covariates](hyp:P,γ,S),
 [an i.i.d. observed-data sample](hyp:sample), [an evaluation split whose limiting share `c` is
 positive](hyp:split,c,hc_pos,h_split_rate), and [training-fold outcome- and treatment-regression
 estimates](hyp:η_hat), suppose [the structural variables, true score, nuisance errors, and their

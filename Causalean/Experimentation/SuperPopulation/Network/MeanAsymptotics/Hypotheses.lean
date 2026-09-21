@@ -49,9 +49,11 @@ theorem centeredNormalizedField_integral_eq_zero
   rw [integral_sub ((hL2 i).integrable (by norm_num)) (integrable_const _)]
   simp [integral_const, probReal_univ]
 
-/-- **Unit total variance.** If [each outcome is square-integrable](hyp:hL2), [the normalizing
-constant `s` is positive](hyp:hs_pos), and [`s²` equals the variance of the network sum of
-outcomes, `s² = Var(∑ᵢ Yᵢ)`](hyp:hs2), then [the standardized network sum
+/-- **Unit total variance.** For [a reflexive, symmetric dependency relation on units](hyp:adj,hrefl,hsymm),
+suppose [each outcome is measurable](hyp:hmeasY) and [outcome vectors indexed by sets with no
+dependency edges between them are independent](hyp:hindepY). If [each outcome is
+square-integrable](hyp:hL2), [the normalizing constant `s` is positive](hyp:hs_pos), and [`s²`
+equals the variance of the network sum of outcomes, `s² = Var(∑ᵢ Yᵢ)`](hyp:hs2), then [the standardized network sum
 `∑ᵢ Xᵢ = (∑ᵢ Yᵢ − ∑ᵢ E[Yᵢ]) / s` has unit total variance: `∫ (∑ᵢ Xᵢ)² = 1`](goal).  This is the
 field-variance hypothesis of `networkSum_clt` (`∫ (depSum X)² = 1`), derived from the outcome
 sum-variance. -/

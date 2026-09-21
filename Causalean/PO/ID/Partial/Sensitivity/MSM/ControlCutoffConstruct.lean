@@ -743,9 +743,9 @@ Fix [a sensitivity parameter Λ strictly greater than 1](hyp:Λ,hΛ). If [the co
 `P[D=0∣X]` lies strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), [the control
 outcome's conditional law given the covariates is atomless (its conditional CDF is
 continuous)](hyp:hatomless), [the calibration level lies strictly between 0 and 1 almost
-everywhere](hyp:hlevel), and suppose [every covariate-measurable cutoff function
+everywhere](hyp:hlevel), and suppose [every ambient-measurable cutoff function
 satisfies the integrability conditions needed to evaluate the calibration and candidate-mean
-functionals at it](hyp:hreg), then [there exists a covariate-measurable cutoff c such that the
+functionals at it](hyp:hreg), then [there exists an ambient-measurable cutoff c such that the
 cutoff-calibration propensity `cutoffProp0 Λ c` lies in the calibrated control MSM set and the
 calibrated control upper bound equals the candidate mean at that cutoff, `msmUpperCalib0 Λ = candMean0
 (cutoffProp0 Λ c)`](goal).
