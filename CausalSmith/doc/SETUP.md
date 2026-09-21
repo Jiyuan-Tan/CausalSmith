@@ -58,9 +58,10 @@ cd CausalSmith/tools && npm install
 
 The two fine-tuned retrieval models are **gitignored weights**; only their meta sidecars are
 committed. On a fresh machine, download them rather than retraining:
-`scripts/fetch_retrieval_models.sh` (about 2.3 GB, release assets on the `build-cache` tag,
-unpacked into `doc/`; the same weights are on Hugging Face as `jytan12/causalean-retrieval`), then `cd CausalSmith/tools && npm run embed:library`. This works on
-Linux, macOS and Windows alike — on Windows run the script from Git Bash with `zstd` on `PATH` —
+`scripts/fetch_retrieval_models.sh` (about 2.4 GB, from the Hugging Face repository
+`jytan12/causalean-retrieval` into `doc/`; `CAUSALEAN_MODELS_REV` pins a revision, each tagged with
+the library commit it was trained against), then `cd CausalSmith/tools && npm run embed:library`. This works on
+Linux, macOS and Windows alike — on Windows run the script from Git Bash —
 and **with or without a GPU**: nothing in the query or corpus path pins a device, so
 sentence-transformers picks CUDA when present and CPU otherwise. CPU and GPU vectors agree to
 within float tolerance (the fp32 GEMM kernels differ in the last ULPs), so corpus embeddings built

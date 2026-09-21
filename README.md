@@ -61,7 +61,7 @@ Causalean's **prebuilt oleans** (a `.tar.zst` archive published as a release
 asset on the `build-cache` tag, so the first build takes minutes rather than
 hours); builds the library and the light CausalSmith package (the Lean proofs
 of existing papers are opt-in and not built, see below); installs the Node tooling; downloads the
-**fine-tuned retrieval models** (about 2.3 GB, same release tag; they power the
+**fine-tuned retrieval models** (about 2.4 GB, from Hugging Face; they power the
 semantic search tier the pipeline uses to find reusable lemmas); and writes the
 machine-specific config. (Windows users: read the [platform notes](#platform-notes)
 first.)
@@ -118,8 +118,8 @@ lake -d CausalSmith build           # Causalean + shared helpers; does NOT build
 cd CausalSmith/tools && npm install
 npm run search -- "backdoor adjustment"
 
-# 4. Optional: the fine-tuned retrieval models (~2.3 GB, same release tag) for semantic search
-cd ../.. && scripts/fetch_retrieval_models.sh   # needs curl, tar, zstd
+# 4. Optional: the fine-tuned retrieval models (~2.4 GB, from Hugging Face) for semantic search
+cd ../.. && scripts/fetch_retrieval_models.sh   # needs curl
 cd CausalSmith/tools && npm run embed:library    # needs Python 3 + sentence-transformers
 npm run search -- --semantic "backdoor adjustment"
 ```
@@ -148,12 +148,14 @@ Causalean oleans) and `causalsmith-build-<sha>.tar.zst` /
 module, fetched only with `--causalsmith`). `fetch_build_cache.sh` picks the
 exact commit when published, else the latest, and lets `lake` rebuild the delta.
 A `latest` CausalSmith archive can be a partial CI build: CI strips every module
-it did not finish, and `lake` builds those. The same tag carries `retrieval_model_ft.tar.zst` /
-`retrieval_reranker_ft.tar.zst` (the model weights, unpacked into `doc/`).
-The two models are also published, with a model card, on Hugging Face as
+it did not finish, and `lake` builds those.
+The two retrieval models live on Hugging Face, with a model card, as
 [`jytan12/causalean-retrieval`](https://huggingface.co/jytan12/causalean-retrieval)
-(retriever at the repository root, reranker under `reranker/`).
-Steps 2 and 4 need `zstd` (`apt install zstd`, `brew install zstd`, or the
+(retriever at the repository root, reranker under `reranker/`); step 4 downloads them into
+`doc/retrieval_model_ft` and `doc/retrieval_reranker_ft`. Set `CAUSALEAN_MODELS_REV` to pin a
+revision: each one is tagged with the library commit it was trained against. If Hugging Face
+cannot be reached, the script falls back to older copies kept on the release tag.
+Step 2 needs `zstd` (`apt install zstd`, `brew install zstd`, or the
 [zstd releases](https://github.com/facebook/zstd/releases) on Windows).
 Step 3 needs Node ≥ 20.20.2 and is worth doing before you read any Lean source:
 the library is large, and `npm run search` is the intended entry point for
@@ -260,12 +262,11 @@ lexical ranking. The embedding tier requires `npm run embed:library` (Python 3 +
 `sentence-transformers`); `--scope module` switches it on automatically whenever
 the embeddings are present and fresh, so that mode is slower on first use. The
 fine-tuned encoder and reranker behind that tier are gitignored weight
-directories: `scripts/fetch_retrieval_models.sh` downloads them (about 2.3 GB,
-published as release assets, and mirrored on Hugging Face as
-[`jytan12/causalean-retrieval`](https://huggingface.co/jytan12/causalean-retrieval))
+directories: `scripts/fetch_retrieval_models.sh` downloads them (about 2.4 GB) from
+Hugging Face, [`jytan12/causalean-retrieval`](https://huggingface.co/jytan12/causalean-retrieval),
 into `doc/`; without them the tooling falls back to
 the off-the-shelf `BAAI/bge-large-en-v1.5` checkpoint. The download and the tier it
-feeds both work on Windows too — run the script from Git Bash with `zstd` on `PATH`.
+feeds both work on Windows too — run the script from Git Bash.
 
 Each hit shows the score, fully-qualified name, type signature, source file,
 whether it is `tier-1` or carries a `⚠usesSorry` flag, and the docstring's
