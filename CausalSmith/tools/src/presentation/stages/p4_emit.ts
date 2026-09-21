@@ -18,6 +18,14 @@ import { extractLeanrefIds } from "../tex2html.js";
 import { paperReferenceLabels, resolveObjCrefsPlain, tex2html } from "../tex2html.js";
 import { PresentationCrosswalk, LeanSnippets, FormalLayer, PaperMeta } from "../types.js";
 import { assertP2AssemblyFresh, recordP2Assembly, texFilesUnder } from "../assembly_freshness.js";
+import {
+  REVIEW_FILE, adoptReviewManuscriptSha, areaForBundleId, ensurePaperIdentity, isProductionDoi,
+} from "../paper_stamp.js";
+import { LatexCompileError, compilePaper, refreshPaperMacros } from "../paper_compile.js";
+import { isCalendarIsoDate, utcToday } from "../iso_date.js";
+import { paperSeriesPrefix } from "../../local_config.js";
+import { readBundleMeta, updateBundleMeta } from "../meta_store.js";
+import { assertBundleEmitLockHeld, withBundleEmitLock } from "../emit_lock.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { loadJsonCache } from "../cache.js";
@@ -172,11 +180,29 @@ export async function stageP4(io: StageIO): Promise<void> {
     await writeFile(join(io.outDir, "p4.stub"), "dry-run\n");
     return;
   }
+  // The working-paper series, resolved and validated ONCE — after the dry run, which mints no
+  // number and must not be blocked by series configuration, and before this stage's first real
+  // write. Two reasons for that placement: a misconfigured prefix must fail before P4 refreshes
+  // the macros or rewrites paper.tex, so a bad setting cannot leave a half-mutated bundle behind;
+  // and one operation must carry one series, so no later environment change can make the number
+  // minted and the registry it is written into disagree.
+  const seriesPrefix = paperSeriesPrefix();
+  // This stage rewrites paper.tex — the date pin, cleveref repair, commit stamping — and then
+  // records that manuscript's hash as a published version. Both halves must be the only ones
+  // touching the bundle's paper files, or another writer's hash describes a file this one has
+  // since changed. The lock is held for the WHOLE emit (compile, Lean build, model calls) and is
+  // the coarsest of the three; the registry and metadata locks are taken inside it, in that order.
+  // `wait` because a second emit of the same paper is a queue, not an error.
+  return withBundleEmitLock(io.outDir, () => emitBundle(io, seriesPrefix), { wait: true });
+}
+
+/** The emit itself, always under the bundle's emit lock. */
+async function emitBundle(io: StageIO, seriesPrefix: string): Promise<void> {
   // P4 is the supported deterministic re-emit entrypoint, so it must refresh template-owned
   // macros instead of inheriting the copy last written by P2. Otherwise a template change can
-  // leave a compile failure that only a stale template copy caused.
-  const macros = await readFile(join(import.meta.dirname, "..", "templates", "paper_macros.tex"), "utf8");
-  await writeFile(join(io.outDir, "paper_macros.tex"), macros, "utf8");
+  // leave a compile failure that only a stale template copy caused. Shared with the restamp tool
+  // (see paper_compile.ts) so the two entrypoints cannot drift apart.
+  await refreshPaperMacros(io.outDir);
   // Equivalence is the trust anchor, and the standard re-emit path `--from P4`
   // skips the earlier stages — so emission must re-consult the persistent cache
   // (live incident: P-8 shipped with verdict="drift" while hard_gate_failures
@@ -304,6 +330,12 @@ export async function stageP4(io: StageIO): Promise<void> {
   }
   await saveVerifyCache();
 
+  // NOTE ON VERSIONS. This rewrite changes paper.tex's bytes, so a `--from P4` re-emit after HEAD
+  // has moved bumps the version — BY DESIGN. The verification note is part of the paper, and a
+  // reader who fetched v2 is entitled to know the reproducibility record now names a different
+  // commit. The latex-only restamp path deliberately does not rewrite commit ids and therefore
+  // never bumps; use it when only the stamp needs refreshing.
+  //
   // The verification note names the commit the checks ran at, and the emit runs them at HEAD: a
   // literal commit id in the prose is stamped to the pinned commit, in the paper and in the
   // authored sources, so a hand-written id cannot go stale when the tree moves (it did, twice,
@@ -342,20 +374,85 @@ export async function stageP4(io: StageIO): Promise<void> {
       io.state.notes.push(`P4: stamped the verification note's commit id to ${pinnedAtEntry.slice(0, 10)}`);
     }
   }
+  // ---------------------------------------------------------------------------
+  // Citation identity: working-paper number, version, revised date, DOI pass-through.
+  //
+  // This runs BEFORE the compile because both of its outputs are compile inputs: the pinned
+  // `\date` lives in paper.tex's preamble, and the page-1 stamp reads `paper_stamp.tex`.
+  // The bundle id IS the directory name (`<qid>_<spec>`) — that is what the tracked registry
+  // and the backfill are keyed by, so there is exactly one notion of "which paper is this".
+  const bundleId = basename(io.outDir);
+  // Read the previous meta once, here: every field P4 must CARRY FORWARD rather than recompute
+  // (created, tldr, the P5 score, the WP-C DOIs) comes out of it, and the emit below reuses it.
+  const priorMeta = await readBundleMeta(io.outDir);
+  // `created` is the paper's FIRST publication date: it drives the site's timeline sort, the
+  // flagship tiebreak, and — through the registry — the YEAR in the working-paper number. A
+  // re-emit must carry it forward, never re-stamp it.
+  //
+  // ABSENT and INVALID are different situations and must not share an outcome. Absent means a
+  // first emit, so today is right. Present-but-invalid means somebody's edit is wrong, and
+  // silently substituting today there moves the paper into the wrong year and numbers it
+  // accordingly — permanently, since numbers are never reissued. So that fails loudly.
+  const created = priorMeta.created === undefined || priorMeta.created === null
+    ? utcToday()
+    : isCalendarIsoDate(priorMeta.created)
+      ? priorMeta.created
+      : (() => {
+          throw new Error(
+            `P4 blocked: ${bundleId}/meta.json records created=${JSON.stringify(priorMeta.created)}, which is not ` +
+              "a real calendar date in YYYY-MM-DD form. This date fixes the paper's working-paper year, so it is " +
+              "corrected by hand, never guessed.",
+          );
+        })();
+  // Short cluster label (shown in the byline, in the page-1 stamp, and used to group the landing
+  // list). Derived, never read back from meta.json, and shared with the restamp tool so a
+  // recompile cannot relabel a paper.
+  const area = areaForBundleId(bundleId);
+  const identity = await ensurePaperIdentity({
+    outDir: io.outDir,
+    repoRoot: io.ctx.repoRoot,
+    bundleId,
+    area,
+    created,
+    prevMeta: priorMeta,
+    seriesPrefix,
+  });
+  // The date pin may have rewritten paper.tex; keep the in-memory copy in step with the file.
+  paperTex = await readFile(paperPath, "utf8");
+  // The identity just adopted a hash for a manuscript whose bytes did not change — only its date
+  // pin did. A p5_review.json still naming one of the EQUIVALENT spellings describes exactly this
+  // draft, but the site compares hashes by raw equality and would tell the reader the referee read
+  // an earlier one. Re-point that one field (a report about a genuinely different manuscript is
+  // left alone; `p5_review_history/` is never touched). Inside the emit lock, like every other
+  // write here.
+  if (await adoptReviewManuscriptSha(io.outDir, identity.manuscriptShas)) {
+    io.state.notes.push(
+      `P4: ${REVIEW_FILE} named the same manuscript under its pre-pin hash; its manuscript_sha256 ` +
+        `now matches versions[-1].paper_sha256, so the site reads the report as current.`,
+    );
+  }
+  // The note reports what page 1 actually carries, not merely what meta.json holds: a sandbox
+  // (or otherwise malformed) DOI is preserved in meta.json but deliberately not printed, and
+  // saying so here is how that value gets surfaced rather than hidden behind a tidy-looking page.
+  io.state.notes.push(
+    `P4: stamped ${identity.wp_number}v${identity.version} [${area}] revised ${identity.revised}` +
+      (isProductionDoi(identity.stampedDoi)
+        ? ` · doi:${identity.stampedDoi}`
+        : ` (no published DOI on page 1 — stamp links to the paper's page${
+            identity.stampedDoi === null ? "" : `; meta.json holds ${JSON.stringify(identity.stampedDoi)}, which is not a published Zenodo DOI`
+          })`),
+  );
+
   // Mechanical compile failures belong to the orchestrator, not a paid writer retry.
   try {
-    await execFileP("latexmk", ["-pdf", "-interaction=nonstopmode", "paper.tex"], {
-      cwd: io.outDir,
-      maxBuffer: 64 * 1024 * 1024,
-    });
+    await compilePaper(io.outDir);
   } catch (e: unknown) {
-    const err = e as { stdout?: string; stderr?: string; message?: string };
-    const log = [err.stdout, err.stderr, err.message].filter(Boolean).join("\n");
+    if (!(e instanceof LatexCompileError)) throw e;
     throw new Error(
       "P4: paper.tex failed to compile; mechanical recovery required (no model retry). " +
       "Inspect paper.log and repair the authored TeX source or shared template. " +
       "After authored-source edits, use --from P2; otherwise re-enter P4.\n" +
-      log.slice(-2000),
+      e.log.slice(-2000),
     );
   }
   // #5 — surface content that runs off the page. Overfull \hbox warnings are not
@@ -808,35 +905,13 @@ export async function stageP4(io: StageIO): Promise<void> {
     (paperTex.match(/\\begin\{abstract\}([\s\S]*?)\\end\{abstract\}/)?.[1]?.trim() ?? "").replace(/~\\/g, " \\"),
     refLabels,
   );
-  // Short cluster label (shown in the byline and used to group the landing list).
-  const area =
-    {
-      stat: "Stat",
-      pid: "Partial ID",
-      eid: "Exact ID",
-      exp: "Experimentation",
-      panel: "Panel",
-    }[io.ctx.qid.split("_")[0]] ?? "Others";
   // TL;DR: a 1-2 sentence skim summary shown above the (folded) abstract on the site.
   // Reuse a non-empty prior one (re-runs / hand-edits) rather than regenerate.
-  let tldr = "";
+  let tldr = typeof priorMeta.tldr === "string" && priorMeta.tldr.trim() ? priorMeta.tldr.trim() : "";
   // P5 injects the overall score into meta.json AFTER P4 emits it. Carry a prior
   // score/rationale forward so a `--from P4` re-emit that has not yet re-run P5
-  // does not blank the badge; P5 overwrites with the fresh value on its next pass.
-  let score: number | null = null;
-  let scoreRationale: string | null = null;
-  // `created` is the paper's FIRST publication date (drives the site's timeline sort
-  // and the flagship tiebreak) — a re-emit must carry it forward, never re-stamp it.
-  let created = new Date().toISOString().slice(0, 10);
-  try {
-    const prev = JSON.parse(await readFile(join(io.outDir, "meta.json"), "utf8"));
-    if (typeof prev.tldr === "string" && prev.tldr.trim()) tldr = prev.tldr.trim();
-    if (typeof prev.score === "number") score = prev.score;
-    if (typeof prev.score_rationale === "string") scoreRationale = prev.score_rationale;
-    if (typeof prev.created === "string" && /^\d{4}-\d{2}-\d{2}$/.test(prev.created)) created = prev.created;
-  } catch {
-    /* no prior meta.json */
-  }
+  // does not blank the badge. P4 no longer WRITES them (see the merge below) — they are only
+  // read here so the schema validation has the whole object to check.
   // A stale TL;DR written before the prose contract should be regenerated rather than carried into
   // a fresh P4 bundle. The regenerated text is checked again below.
   if (tldr && lintNegativeContributionFraming(tldr).length > 0) tldr = "";
@@ -857,18 +932,61 @@ export async function stageP4(io: StageIO): Promise<void> {
     io.state.notes.push(`P4: TL;DR dropped (affirmative prose contract): ${tldrStyle.map((p) => p.detail).join("; ")}`);
     tldr = "";
   }
-  const meta = PaperMeta.parse({
+
+  // The keys THIS stage owns and is entitled to write. Everything else in meta.json — the DOIs,
+  // the referee score, the user's authorship, and any key added by a future package this code has
+  // never heard of — is someone else's, and is preserved by simply not being named here.
+  const generated: Record<string, unknown> = {
     qid: io.ctx.qid,
     spec: io.ctx.spec,
     title: outline.title,
     tldr,
     abstract,
     area,
-    authorship: null,
     created,
-    wp_number: null,
-    score,
-    score_rationale: scoreRationale,
+    // Citation identity settled before the compile, and already printed on page 1.
+    wp_number: identity.wp_number,
+    version: identity.version,
+    revised: identity.revised,
+    versions: identity.versions,
+  };
+  // The write RE-READS meta.json under the bundle lock and merges into whatever is there NOW,
+  // rather than into the snapshot taken back before the compile. Between those two points lie a
+  // LaTeX run, a Lean build, a paper-index extraction and a model call — minutes in which the
+  // Zenodo tool can publish a DOI or P5 can inject a score. Writing the pre-compile snapshot back
+  // would silently revert either one.
+  // Checkpoint before the durable write: if this emit lost its lock mid-run, another process may
+  // already own the bundle's files and this result must not be recorded.
+  assertBundleEmitLockHeld(io.outDir);
+  const written = await updateBundleMeta(io.outDir, (current) => {
+    const merged = { ...emptyMetaSkeleton(), ...current, ...generated };
+    // Validate the whole record. zod ignores unknown keys rather than rejecting them, and the
+    // object WRITTEN is `merged`, not the parse result — parsing would strip exactly the
+    // third-party keys this merge exists to protect.
+    PaperMeta.parse(merged);
+    return merged;
   });
-  await writeFile(join(io.outDir, "meta.json"), JSON.stringify(meta, null, 2) + "\n", "utf8");
+  // A DOI that landed during the emit is in meta.json now but was NOT on the stamp, because the
+  // stamp had to be written before the compile. Say so: the fix is a restamp, not a re-emit.
+  if (isProductionDoi(written.doi) && written.doi !== identity.stampedDoi) {
+    io.state.notes.push(
+      `P4: doi ${String(written.doi)} appeared in meta.json during this emit, so page 1 of the PDF just ` +
+        "compiled does not carry it. Rewrite paper_stamp.tex and recompile (no re-emit needed).",
+    );
+  }
+}
+
+/**
+ * Every key of the bundle contract at its documented default, in the documented order.
+ *
+ * Only used to seed a bundle that has no meta.json yet: merging over this gives a first emit the
+ * canonical key order, while an existing file keeps whatever order it already has (the writer
+ * preserves position, so a review diff stays readable).
+ */
+function emptyMetaSkeleton(): Record<string, unknown> {
+  return {
+    qid: "", spec: "", title: "", tldr: "", abstract: "", area: "", authorship: null, created: "",
+    wp_number: null, version: 1, revised: null, versions: [], doi: null, version_doi: null,
+    score: null, score_rationale: null,
+  };
 }

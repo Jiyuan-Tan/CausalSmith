@@ -1,0 +1,112 @@
+---
+/**
+ * One paper on the landing page — the flagship panel and every list row are
+ * the SAME markup, differing only in a class and the "Featured" kicker. They
+ * were duplicated before; with the Cite panel and the score fold they would
+ * have been duplicated a third time, and the two copies would have drifted
+ * within a release.
+ */
+import { crosswalkLabels, verifiedBadge, type Bundle } from "../lib/bundles.js";
+import { formatDate, type CitationMeta } from "../lib/citation.js";
+import { renderTexLine, TEX_SOURCED as TEX, titleCase } from "../lib/docmd.js";
+import { latestPaperSha256 } from "../lib/review.js";
+import AiScoreFold from "./AiScoreFold.astro";
+import CiteButton from "./CiteButton.astro";
+import CitePanel from "./CitePanel.astro";
+
+interface Props {
+  bundle: Bundle;
+  /** The top-scored paper's distinguished panel above the sortable list. */
+  flagship?: boolean;
+}
+const { bundle: b, flagship = false } = Astro.props as Props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const href = `${base}/papers/${b.id}/`;
+const reviewHref = `${base}/papers/${b.id}/review`;
+
+const m = b.meta;
+const citation: CitationMeta = {
+  id: b.id,
+  // The paper's OWN title, not the site's Title Case display form: a citation
+  // reproduces what the PDF says, and brace-protecting capitals the site added
+  // would bake a display convention into everyone's .bib file.
+  title: m.title,
+  wpNumber: m.wp_number,
+  created: m.created,
+  version: m.version,
+  revised: m.revised,
+  // The paper's own byline, when it has one: the citation must credit whoever
+  // the PDF credits, not the series.
+  authorship: m.authorship,
+  doi: m.doi,
+  commit: b.commit,
+};
+// A revision line only earns its place once there IS one: a v1 paper's
+// "revised" date is its creation date, and printing both would be noise.
+//
+// Built as ONE string, deliberately. Astro drops the whitespace between two
+// adjacent `{…}` expressions, so `v{m.version} {formatDate(m.revised)}`
+// rendered "v327 Aug 2026" on the live landing page (audit r4).
+const revisionLabel =
+  typeof m.version === "number" && m.version > 1 && m.revised
+    ? `v${m.version} ${formatDate(m.revised)}`
+    : null;
+// ONE score, normalised at bundle load — badge, fold, paper page, review page
+// and the sort all read this, so the site cannot contradict itself.
+const score = b.score;
+---
+
+<section
+  class={flagship ? "wp-flagship" : "wp-entry"}
+  data-score={typeof score === "number" ? score : -1}
+  data-area={m.area}
+  data-created={m.created}
+>
+  {flagship && <div class="wp-featured-kicker">Featured</div>}
+  <h2><a href={href} set:html={renderTexLine(titleCase(m.title), TEX)} /></h2>
+  <div class="wp-meta">
+    <span class="wp-id">
+      {m.wp_number ?? b.id} &middot; {m.area} &middot; {formatDate(m.created)}
+      {revisionLabel && <> &middot; {revisionLabel}</>}
+    </span>
+    <span class="badge badge-verified" title={verifiedBadge(b)}>&#10003; verified in Lean 4</span>
+    {typeof score === "number" && (
+      b.review ? (
+        <button
+          type="button"
+          class="badge score-badge"
+          data-fold-toggle
+          aria-expanded="false"
+          aria-controls={`ai-${b.id}`}
+        >AI score {score.toFixed(1)}/10 <span class="fold-mark" aria-hidden="true" data-fold-mark>&#9656;</span></button>
+      ) : (
+        <span class="badge score-badge" title={m.score_rationale ?? undefined}>AI score {score.toFixed(1)}/10</span>
+      )
+    )}
+    <span class="badge rating-badge" data-rating-for={b.id} hidden></span>
+  </div>
+  {b.review && typeof score === "number" && (
+    <AiScoreFold
+      review={b.review}
+      revised={m.revised}
+      paperSha256={latestPaperSha256(m.versions)}
+      reviewHref={reviewHref}
+      id={`ai-${b.id}`}
+      labels={crosswalkLabels(b)}
+    />
+  )}
+  {m.tldr && <p class="wp-tldr" set:html={renderTexLine(m.tldr, TEX)} />}
+  <div class="wp-actions">
+    <a href={href}>Read online</a>
+    {b.hasPdf && <a href={`${base}/papers/${b.id}/paper.pdf`}>PDF</a>}
+    {b.paperLib && <a href={`${base}/papers/${b.id}/formalization`}>Lean code</a>}
+    {b.slidesMd && <a href={`${base}/papers/${b.id}/slides`}>Slides</a>}
+    <span class="wp-actions-spacer"></span>
+    <CiteButton panel={`cite-${b.id}`} />
+  </div>
+  <CitePanel meta={citation} id={`cite-${b.id}`} />
+  <details class="wp-abstract-fold">
+    <summary>Abstract</summary>
+    <p class="wp-abstract" set:html={renderTexLine(m.abstract, TEX)} />
+  </details>
+</section>

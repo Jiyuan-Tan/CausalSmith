@@ -18,6 +18,7 @@ import {
   type LinkProblem,
   type StructuredView,
 } from "./paperLean.js";
+import { parseReview, type RawRound, type Review } from "./review.js";
 
 /**
  * Bundle loader + site-side integrity gate. A bundle is what papersmith P4
@@ -97,6 +98,23 @@ export interface Meta {
    *  Drives the "AI reviewer score" badge and best-first ordering. */
   score?: number | null;
   score_rationale?: string | null;
+
+  // ── citable identity (contract of 2026-09-20) ──────────────────────────
+  // ALL OPTIONAL for the site. Every bundle shipped before the numbering/DOI
+  // pipeline existed lacks them, and each missing field simply removes the UI
+  // piece that needed it — the build never fails on absence.
+  /** Current version number, integer ≥ 1. */
+  version?: number | null;
+  /** ISO date of the current version; equals `created` at v1. Nullable. */
+  revised?: string | null;
+  /** Ascending version history, when the pipeline recorded one. `paper_sha256`
+   *  is null on every backfilled historical entry — only the latest version is
+   *  guaranteed to carry one, and even that only on re-emitted bundles. */
+  versions?: { v: number; date?: string | null; paper_sha256?: string | null }[] | null;
+  /** Zenodo CONCEPT DOI — one per paper, arXiv-style (the version shows as vN). */
+  doi?: string | null;
+  /** Zenodo per-version DOI. Recorded, deliberately NOT what the site cites. */
+  version_doi?: string | null;
 }
 
 export interface Bundle {
@@ -127,6 +145,91 @@ export interface Bundle {
   /** Shared source table for `Snippet.componentViews` (see `paperLean.ts`),
    *  keyed by fully-qualified declaration name. Absent if enrichment failed. */
   declSources?: Record<string, DeclSource>;
+  /**
+   * THE score, 0–10, or null when the paper has none.
+   *
+   * One number, decided once, used by the landing badge, the fold, the paper
+   * page, the review page and the sort. `meta.score` is a COPY the pipeline
+   * takes out of the report and it can drift from it — today
+   * stat_discrete_ate_heterogeneity_frontier_v1 says 7.0 in meta and 6.6 in
+   * the report — so a page reading one and a page reading the other made the
+   * site contradict itself (audit, 2026-09-21). The report wins, because the
+   * report is the thing the reader can open and check.
+   */
+  score: number | null;
+  /** Optional AI referee report (`p5_review.json` + `p5_review_history/`),
+   *  parsed through `review.ts`'s whitelist — so the referee's `recommendation`
+   *  is not merely unrendered, it is absent from this object entirely. Null
+   *  when the bundle carries no readable report. */
+  review: Review | null;
+}
+
+/** obj_id → paper label ("Theorem 3"), for resolving `\cref{obj:…}` in review
+ *  prose. Built from the crosswalk, which is the paper's own numbering. */
+export function crosswalkLabels(b: Bundle): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const e of b.entries) {
+    if (e.paper_label) out[e.obj_id] = e.paper_label;
+  }
+  return out;
+}
+
+/**
+ * Loads the referee report, if any. Decoration over the paper: an absent,
+ * unreadable or half-written artifact costs the reader the review page and
+ * nothing else — it is never a build failure.
+ */
+async function loadReview(dir: string, id: string): Promise<Review | null> {
+  const file = join(dir, "p5_review.json");
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch (e) {
+    // A bundle with no report is the normal case and says nothing. A report
+    // that exists and cannot be READ is a different thing and must be heard.
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") {
+      console.warn(`[bundles] ${id}: cannot read ${file} (${(e as Error).message}) \u2014 ` +
+        `the paper ships without its AI review.`);
+    }
+    return null;
+  }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch (e) {
+    console.warn(`[bundles] ${id}: ${file} is present but not valid JSON ` +
+      `(${(e as Error).message}) \u2014 the fold, the byline link and the /review route are ` +
+      `omitted for this paper. Re-run P5 for this bundle.`);
+    return null;
+  }
+  const rounds: RawRound[] = [];
+  try {
+    const histDir = join(dir, "p5_review_history");
+    for (const name of await readdir(histDir)) {
+      const m = /^round_(\d+)\.json$/.exec(name);
+      if (!m) continue;
+      try {
+        rounds.push({ index: Number(m[1]), raw: JSON.parse(await readFile(join(histDir, name), "utf8")) });
+      } catch {
+        /* one torn round file must not cost the other rounds */
+      }
+    }
+  } catch {
+    /* no history directory — the report is a single round */
+  }
+  let review: Review | null = null;
+  try {
+    review = parseReview(raw, rounds);
+  } catch (e) {
+    console.warn(`[bundles] ${id}: ${file} could not be read as a review ` +
+      `(${(e as Error).message}) \u2014 the paper ships without its AI review.`);
+    return null;
+  }
+  if (!review) {
+    console.warn(`[bundles] ${id}: ${file} carries no summary, findings, strengths or score ` +
+      `\u2014 there is nothing to show, so the paper ships without its AI review.`);
+  }
+  return review;
 }
 
 export async function loadBundle(dir: string, id: string): Promise<Bundle> {
@@ -199,6 +302,9 @@ export async function loadBundle(dir: string, id: string): Promise<Bundle> {
 
   // Slides, like the proof map, are decoration over the paper, never a gate.
   const slidesMd = await readFile(join(dir, "slides.md"), "utf8").catch(() => null);
+
+  // The AI referee report — same contract: decoration, never a gate.
+  const review = await loadReview(dir, id);
 
   // The proof map is decoration over the paper, never a gate: an artifact that
   // is absent, unreadable, or malformed costs the reader the panel and nothing
@@ -343,6 +449,13 @@ export async function loadBundle(dir: string, id: string): Promise<Bundle> {
     slidesMd,
     paperGraph,
     declSources,
+    review,
+    score:
+      review && typeof review.score === "number"
+        ? review.score
+        : typeof meta.score === "number"
+          ? meta.score
+          : null,
   };
 }
 
@@ -386,8 +499,8 @@ export async function loadBundles(roots: string[]): Promise<Bundle[]> {
   // (operator decision, 2026-08-26): the longer-standing paper keeps the flagship panel —
   // a new paper must strictly beat it to take the featured slot, not merely tie it.
   bundles.sort((a, b) => {
-    const sa = typeof a.meta.score === "number" ? a.meta.score : -Infinity;
-    const sb = typeof b.meta.score === "number" ? b.meta.score : -Infinity;
+    const sa = typeof a.score === "number" ? a.score : -Infinity;
+    const sb = typeof b.score === "number" ? b.score : -Infinity;
     if (sa !== sb) return sb - sa;
     return a.meta.created < b.meta.created ? -1 : 1;
   });

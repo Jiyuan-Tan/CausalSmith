@@ -26,6 +26,18 @@ export function presentationDir(repoRoot: string, qid: string, spec: string): st
   return join(repoRoot, "doc", "presentation", `${qid}_${spec}`);
 }
 
+/** Directory holding every shipped paper bundle (plus the tracked registry file below). */
+export function presentationRoot(repoRoot: string): string {
+  return join(repoRoot, "doc", "presentation");
+}
+
+/** Tracked working-paper-number registry: `{ "<bundle id>": "<SERIES>-2026-008", … }`.
+ *  Lives beside the bundles (and is therefore NOT itself a bundle — readers of
+ *  `doc/presentation/` must treat only directories containing a `meta.json` as bundles). */
+export function wpRegistryPath(repoRoot: string): string {
+  return join(presentationRoot(repoRoot), "_wp_registry.json");
+}
+
 /**
  * Per-run LOG directory: `<presentationDir(qid,spec)>/logs/`. Mirrors causalsmith's
  * `<formalizationDir>/logs/` convention — holds the transient run-log artifacts (the

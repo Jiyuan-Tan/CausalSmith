@@ -335,6 +335,216 @@ body {
 }
 .site-footer a { color: var(--accent); }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Cite panel + AI-score fold.
+
+   Shared by the landing list, the flagship panel and the paper page, so they
+   live here (series.css is imported by all three). No new hues: the panel is
+   the same parchment/rule/cardinal system as everything else; the severity
+   chips reuse the existing sorry/axiom washes.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* Pushes Cite to the right end of the link row (layout B: Cite is a utility
+   that acts on the paper, not a fifth place to go). */
+.wp-actions-spacer { flex: 1 1 auto; min-width: 0; }
+
+/* Cite: a small outlined button, deliberately not styled like the four links
+   beside it — it opens a panel rather than navigating. */
+.cite-btn {
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  color: var(--accent-deep);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-badge);
+  padding: 0.1rem 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+.cite-btn:hover,
+.cite-btn[aria-expanded="true"] { border-color: var(--accent-muted); background: var(--accent-wash); }
+.cite-btn .cite-q { font-size: 1.05em; line-height: 1; transform: translateY(1px); }
+
+.cite-panel {
+  margin-top: var(--sp-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-card);
+  background: var(--paper);
+  overflow: hidden;
+}
+/* A disclosure is COLLAPSED, not hidden, and only where a script can open it
+   again: `.js` is set in the document head. With JavaScript off the Cite panel
+   and the score fold render open, so both citations and the referee's
+   criticisms are still readable (audit r2). */
+.js .cite-panel[data-collapsed],
+.js .cite-body[data-collapsed],
+.js .ai-fold[data-collapsed] { display: none; }
+
+.cite-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--rule);
+  background: var(--parchment-deep);
+  font-size: var(--fs-xs);
+}
+/* Copy is a sibling of the tablist, not a tab inside it — see CitePanel. */
+.cite-tablist { display: flex; }
+.cite-tabs button {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  color: var(--ink-faint);
+}
+.cite-tabs button[aria-selected="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.cite-tabs .cite-copy { margin-left: auto; color: var(--accent-deep); font-weight: 600; }
+.cite-tabs button:focus-visible { outline-offset: -2px; }
+
+.cite-body {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--ink);
+}
+.cite-body-text {
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  font-size: var(--fs-body-s);
+  white-space: normal;
+}
+.cite-foot {
+  border-top: 1px solid var(--rule-soft);
+  padding: 0.45rem 0.9rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+}
+.cite-foot code {
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  color: var(--ink);
+}
+
+/* The score badge as a disclosure. Same pill, now clickable — the number keeps
+   its place in the meta row and the argument behind it opens underneath. */
+button.score-badge {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  font-size: inherit;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+button.score-badge:hover,
+button.score-badge[aria-expanded="true"] { border-color: var(--accent-muted); }
+.score-badge .fold-mark { font-weight: 400; opacity: 0.85; }
+
+/* The paper page's one-line variant, under the reader-rating row. */
+.paper-ai-row { margin: 0.15rem 0 1.1rem; font-size: var(--fs-sm); }
+.ai-line {
+  font: inherit;
+  font-family: Charter, Georgia, "Times New Roman", serif;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.ai-line b { color: var(--accent); }
+.ai-line .fold-mark { color: var(--accent); display: inline-block; width: 1em; }
+.ai-line:hover { color: var(--ink); }
+/* A paper with a score but no report: the same line, not clickable. */
+.ai-line-static { cursor: default; }
+.ai-line-static:hover { color: var(--ink-soft); }
+/* …and the sentence that explains it, with no fold to sit inside. */
+.ai-rationale-bare { margin: 0.3rem 0 0; color: var(--ink-soft); }
+
+/* What unfolds: rationale, main criticisms, counts, staleness. */
+.ai-fold {
+  background: var(--parchment);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-card);
+  padding: 1rem 1.15rem;
+  margin: 0.7rem 0 1rem;
+}
+.ai-fold p { margin: 0; font-size: var(--fs-body-s); }
+.ai-crit-k,
+.review-verdict-k {
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.ai-crit-k { margin-top: 0.85rem; }
+.ai-crit { margin: 0.3rem 0 0; padding-left: 1.1rem; font-size: 0.9rem; }
+.ai-crit li { margin: 0.35rem 0; }
+.f-sec {
+  font-size: var(--fs-2xs);
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+/* Scoped rather than !important: `.ai-fold p` is more specific than a bare
+   class, and an !important here would have to be matched by every later or
+   responsive override. */
+.ai-fold .ai-counts { margin-top: 0.7rem; font-size: var(--fs-xs); color: var(--ink-soft); }
+.ai-counts a { color: var(--accent-deep); text-decoration: none; border-bottom: 1px dotted var(--accent-muted); }
+.ai-counts a:hover { border-bottom-style: solid; }
+.ai-stale {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  border-top: 1px solid var(--rule-soft);
+  margin-top: 0.7rem;
+  padding-top: 0.55rem;
+}
+
+/* arXiv-style identity block on the paper page. */
+.paper-ident {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.7rem 0;
+  margin: 1.1rem 0 1.4rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+}
+.paper-ident dt {
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  padding-top: 0.18rem;
+}
+.paper-ident dd { margin: 0; }
+.paper-ident code {
+  font-family: "JuliaMono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  color: var(--ink);
+}
+/* A phone cannot hold "label | value" side by side once the value is a DOI. */
+@media (max-width: 480px) {
+  .paper-ident { grid-template-columns: 1fr; }
+  .paper-ident dt { padding-top: 0.5rem; }
+  .cite-body { font-size: 0.72rem; }
+}
+
 /* Off-site links in a header row (arXiv, GitHub): the ↗ marks the jump without
    competing with the label, and is decorative so screen readers skip it. */
 .nav-external span[aria-hidden] {

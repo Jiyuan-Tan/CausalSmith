@@ -1,11 +1,17 @@
 ---
-import { loadBundles, type Bundle } from "../../lib/bundles.js";
+import { crosswalkLabels, loadBundles, type Bundle } from "../../lib/bundles.js";
 import { bundleRoots, GITHUB_REPO, GITHUB_URL, PAPER_CITE, PAPER_URL, SERIES_NAME, SERIES_TAGLINE, sourceRef } from "../../lib/config.js";
 import SeoHead from "../../components/SeoHead.astro";
+import AiScoreFold from "../../components/AiScoreFold.astro";
+import CiteButton from "../../components/CiteButton.astro";
+import CitePanel from "../../components/CitePanel.astro";
 import PaperComments from "../../components/PaperComments.astro";
 import ProofMap from "../../components/ProofMap.astro";
-import { renderTexCompact, renderLabel, titleCase } from "../../lib/docmd.js";
+import { citationAuthor, conceptDoi, doiUrl, formatDate, paperUrl, type CitationMeta } from "../../lib/citation.js";
+import { renderTexCompact, renderLabel, renderTexLine, TEX_SOURCED as TEX, titleCase } from "../../lib/docmd.js";
 import { renderMath } from "../../lib/paperMath.js";
+import { renderReviewText, texToReadable } from "../../lib/reviewText.js";
+import { latestPaperSha256 } from "../../lib/review.js";
 import "../../styles/series.css";
 import "../../styles/paper.css";
 import "../../styles/comments.css";
@@ -76,6 +82,45 @@ const statusLabel: Record<string, string> = {
   unreviewed: "—",
 };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// ── citable identity (arXiv-style block under the title) ──────────────────
+// Every field here is optional in the bundle contract, so each line is drawn
+// only when there is something to draw; a bundle with no number, version or
+// DOI still gets a "Cite as" row (the URL) and a working Cite panel.
+const meta = bundle.meta;
+const citation: CitationMeta = {
+  id: bundle.id,
+  // As authored, not Title Cased — see PaperEntry.astro.
+  title: meta.title,
+  wpNumber: meta.wp_number,
+  created: meta.created,
+  version: meta.version,
+  revised: meta.revised,
+  // See PaperEntry.astro: `meta.authorship` is what the citation credits.
+  authorship: meta.authorship,
+  doi: meta.doi,
+  commit: bundle.commit,
+};
+const citeCtx = { site: Astro.site ? Astro.site.href : null, base };
+const selfUrl = paperUrl(citation, citeCtx);
+// One gate for every DOI the page prints — the identity block, the Cite panel
+// and the `citation_doi` tag. A sandbox or malformed DOI is treated as absent.
+// `meta.version_doi` is deliberately never rendered or linked: between reserve
+// and publish it does not resolve, and the series cites the concept DOI only.
+const doiId = conceptDoi(meta.doi);
+const doiHref = doiUrl(meta.doi);
+const hasRevision = typeof meta.version === "number" && meta.version > 1 && Boolean(meta.revised);
+const reviewHref = `${base}/papers/${bundle.id}/review`;
+const aiScore = bundle.score; // normalised at load — see Bundle.score
+// A paper with a score but NO report still has the one sentence that explains
+// the score. Printing the number alone gives the reader a verdict with no
+// critique, which is the single thing this page refuses to do (see
+// AiScoreFold). The sentence is referee prose, so it goes through the referee
+// renderer; the tooltip carries the same words as plain text.
+const scoreWhy = meta.score_rationale
+  ? renderReviewText(meta.score_rationale, crosswalkLabels(bundle))
+  : null;
+const scoreWhyPlain = meta.score_rationale ? texToReadable(meta.score_rationale) : null;
 ---
 
 <html lang="en">
@@ -84,6 +129,20 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
       title={`${titleCase(bundle.meta.title)} · ${SERIES_NAME}`}
       description={bundle.meta.tldr ?? `${titleCase(bundle.meta.title)} — a ${SERIES_NAME} working paper in ${bundle.meta.area}, with every theorem, assumption, and lemma machine-verified in Lean 4.`}
       ogType="article"
+      citation={{
+        title: bundle.meta.title,
+        // Whoever the BibTeX credits — the same resolution, so Scholar and the
+        // Cite panel can never name different authors for the same paper.
+        authors: [citationAuthor(citation, citeCtx)],
+        // Scholar should record the version a reader would cite today; the
+        // first-online date is carried separately.
+        publicationDate: meta.revised ?? meta.created,
+        onlineDate: meta.created,
+        institution: "CausalSmith Working Papers",
+        number: meta.wp_number,
+        pdfUrl: bundle.hasPdf && Astro.site ? new URL(`${base}/papers/${bundle.id}/paper.pdf`, Astro.site).href : null,
+        doi: doiId,
+      }}
     />
   </head>
   <body>
@@ -113,21 +172,73 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
     <article class="paper">
       <div class="paper-byline">
         <a href={`${base}/`}>{SERIES_NAME} · {SERIES_TAGLINE}</a>
+        {/* The score badge used to live here; it is now the fold under the
+            rating line, where it can show the critique instead of a number. */}
         — {bundle.meta.wp_number ?? bundle.id} · {bundle.meta.area} ·
-        {typeof bundle.meta.score === "number" && (
-          <> <span class="score-badge" title={bundle.meta.score_rationale ?? "The AI reviewer score is a single automated referee's 0–10 estimate — a rough reference, not a peer-review verdict."}>AI reviewer score {bundle.meta.score}/10</span> · </>
-        )}
         pinned commit
         <code>{bundle.commit.slice(0, 7)}</code>
         {bundle.hasPdf && <> · <a href={`${base}/papers/${bundle.id}/paper.pdf`} data-astro-prefetch="false">PDF</a></>}
         {bundle.paperLib && <> · <a href={`${base}/papers/${bundle.id}/formalization`} data-astro-prefetch="false">Lean code</a></>}
         {bundle.slidesMd && <> · <a href={`${base}/papers/${bundle.id}/slides`}>Slides</a></>}
+        {bundle.review && <> · <a href={reviewHref}>AI review</a></>}
         {" · "}
         <a class="nav-external" href={PAPER_URL} title={PAPER_CITE} target="_blank" rel="noopener">arXiv <span aria-hidden="true">↗</span></a>
         {GITHUB_URL && <> · <a class="nav-external" href={GITHUB_URL} target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></>}
       </div>
-      <h1>{titleCase(bundle.meta.title)}</h1>
+      <h1 set:html={renderTexLine(titleCase(bundle.meta.title), TEX)} />
       <div class="paper-rating" id="paper-rating" hidden></div>
+      {/* With a report the score is a disclosure; without one it is still the
+          paper's score and still belongs on the page (audit r4). */}
+      {!bundle.review && typeof aiScore === "number" && (
+        <div class="paper-ai-row">
+          <span class="ai-line ai-line-static" title={scoreWhyPlain ?? undefined}>AI score <b>{aiScore.toFixed(1)}/10</b></span>
+          {scoreWhy && <p class="ai-rationale ai-rationale-bare" set:html={scoreWhy} />}
+        </div>
+      )}
+      {bundle.review && typeof aiScore === "number" && (
+        <div class="paper-ai-row">
+          <button
+            type="button"
+            class="ai-line"
+            data-fold-toggle
+            aria-expanded="false"
+            aria-controls={`ai-${bundle.id}`}
+          ><span class="fold-mark" aria-hidden="true" data-fold-mark>&#9656;</span> AI score <b>{aiScore.toFixed(1)}/10</b></button>
+        </div>
+      )}
+      {bundle.review && typeof aiScore === "number" && (
+        <AiScoreFold
+          review={bundle.review}
+          revised={bundle.meta.revised}
+          paperSha256={latestPaperSha256(bundle.meta.versions)}
+          reviewHref={reviewHref}
+          id={`ai-${bundle.id}`}
+          labels={crosswalkLabels(bundle)}
+        />
+      )}
+
+      {/* arXiv-style identity block: what this paper is and how to cite it. */}
+      <dl class="paper-ident">
+        <dt>Submitted</dt>
+        <dd>
+          {formatDate(meta.created)}{typeof meta.version === "number" && <> (v1)</>}
+          {hasRevision && <> · last revised {formatDate(meta.revised)} (v{meta.version})</>}
+        </dd>
+        <dt>Cite as</dt>
+        <dd>
+          {meta.wp_number && <code>{meta.wp_number}</code>}
+          {meta.wp_number && (doiHref || selfUrl) && <> · </>}
+          {doiHref ? (
+            <a href={doiHref}>{doiHref}</a>
+          ) : (
+            selfUrl && <a href={selfUrl}>{selfUrl}</a>
+          )}
+          {" "}
+          <CiteButton panel={`cite-${bundle.id}`} />
+        </dd>
+      </dl>
+      <CitePanel meta={citation} id={`cite-${bundle.id}`} />
+
       <div id="paper-body" set:html={renderedBody} />
 
       {bundle.formalLayer && bundle.formalLayer.groups.length > 0 && (
@@ -191,6 +302,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
       import { initComments } from "../../scripts/comments.js";
       import { initProofMap } from "../../scripts/proofMap.js";
       import { initPaperRating } from "../../scripts/ratings.js";
+      import { initDisclosures } from "../../scripts/disclosures.js";
       import { katexOptions } from "../../lib/katexConfig.js";
       // Wire the drawer FIRST, and never behind a top-level `import katex` — a
       // failed katex load (e.g. a stale Vite optimize-deps chunk 504ing in dev)
@@ -204,6 +316,8 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
       initProofMap();
       // Byline star rating — same no-worker no-op contract as the other widgets.
       initPaperRating();
+      // Cite panel + AI-score fold (delegated; see scripts/disclosures.ts).
+      initDisclosures();
       // Reader commentary — no-ops unless PUBLIC_COMMENTS_WORKER is set. Runs
       // after the drawer so a comments failure can never cost the Lean layer,
       // and after parsing so the sentence segmenter sees the whole body.

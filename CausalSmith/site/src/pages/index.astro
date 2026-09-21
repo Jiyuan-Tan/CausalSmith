@@ -1,7 +1,7 @@
 ---
-import { loadBundles, verifiedBadge, type Bundle } from "../lib/bundles.js";
+import { loadBundles, type Bundle } from "../lib/bundles.js";
 import { bundleRoots, GITHUB_URL, PAPER_CITE, PAPER_URL, SERIES_NAME, SERIES_TAGLINE } from "../lib/config.js";
-import { renderTexLine, titleCase } from "../lib/docmd.js";
+import PaperEntry from "../components/PaperEntry.astro";
 import SeoHead from "../components/SeoHead.astro";
 import "katex/dist/katex.min.css";
 import "../styles/series.css";
@@ -13,7 +13,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 // one focal point that answers "where do I start?". Only when there's a score to
 // justify the pick and more than one paper to feature over.
 const flagship: Bundle | null =
-  bundles.length >= 2 && typeof bundles[0].meta.score === "number" ? bundles[0] : null;
+  bundles.length >= 2 && typeof bundles[0].score === "number" ? bundles[0] : null;
 const listed = flagship ? bundles.slice(1) : bundles;
 ---
 
@@ -59,31 +59,7 @@ const listed = flagship ? bundles.slice(1) : bundles;
 
       {bundles.length === 0 && <p class="empty-series">No papers published yet.</p>}
 
-      {flagship && (
-        <section class="wp-flagship" data-area={flagship.meta.area}>
-          <div class="wp-featured-kicker">Featured</div>
-          <h2><a href={`${base}/papers/${flagship.id}/`} set:html={renderTexLine(titleCase(flagship.meta.title))} /></h2>
-          <div class="wp-meta">
-            <span class="wp-id">{flagship.meta.wp_number ?? flagship.id} · {flagship.meta.area} · {flagship.meta.created}</span>
-            <span class="badge badge-verified" title={verifiedBadge(flagship)}>✓ verified in Lean 4</span>
-            {typeof flagship.meta.score === "number" && (
-              <span class="badge score-badge" title={flagship.meta.score_rationale ?? undefined}>AI reviewer score {flagship.meta.score}/10</span>
-            )}
-            <span class="badge rating-badge" data-rating-for={flagship.id} hidden></span>
-          </div>
-          {flagship.meta.tldr && <p class="wp-tldr" set:html={renderTexLine(flagship.meta.tldr)} />}
-          <div class="wp-actions">
-            <a href={`${base}/papers/${flagship.id}/`}>Read online</a>
-            {flagship.hasPdf && <a href={`${base}/papers/${flagship.id}/paper.pdf`}>PDF</a>}
-            {flagship.paperLib && <a href={`${base}/papers/${flagship.id}/formalization`}>Lean code</a>}
-            {flagship.slidesMd && <a href={`${base}/papers/${flagship.id}/slides`}>Slides</a>}
-          </div>
-          <details class="wp-abstract-fold">
-            <summary>Abstract</summary>
-            <p class="wp-abstract" set:html={renderTexLine(flagship.meta.abstract)} />
-          </details>
-        </section>
-      )}
+      {flagship && <PaperEntry bundle={flagship} flagship />}
 
       {listed.length > 1 && (
         <div class="wp-controls" role="group" aria-label="Sort papers">
@@ -96,39 +72,17 @@ const listed = flagship ? bundles.slice(1) : bundles;
       )}
       {listed.length > 0 && (
         <p class="wp-score-note">
-          The <strong>AI reviewer score</strong> (0–10) is a single automated referee's estimate,
+          The <strong>AI score</strong> (0–10) is a single automated referee's estimate,
           produced by the pipeline's review stage — it can be inaccurate and is intended only as a
-          rough reference, not a peer-review verdict. The <strong>reader rating</strong> (1–5 ★) is
+          rough reference, not a peer-review verdict. Click a score to read the referee's
+          reasoning and its main criticisms. The <strong>reader rating</strong> (1–5 ★) is
           the average of star ratings left by signed-in readers, on each paper and on individual
           statements within it.
         </p>
       )}
 
       <div id="wp-list">
-      {listed.map((b) => (
-        <section class="wp-entry" data-score={typeof b.meta.score === "number" ? b.meta.score : -1} data-area={b.meta.area} data-created={b.meta.created}>
-          <h2><a href={`${base}/papers/${b.id}/`} set:html={renderTexLine(titleCase(b.meta.title))} /></h2>
-          <div class="wp-meta">
-            <span class="wp-id">{b.meta.wp_number ?? b.id} · {b.meta.area} · {b.meta.created}</span>
-            <span class="badge badge-verified" title={verifiedBadge(b)}>✓ verified in Lean 4</span>
-            {typeof b.meta.score === "number" && (
-              <span class="badge score-badge" title={b.meta.score_rationale ?? undefined}>AI reviewer score {b.meta.score}/10</span>
-            )}
-            <span class="badge rating-badge" data-rating-for={b.id} hidden></span>
-          </div>
-          {b.meta.tldr && <p class="wp-tldr" set:html={renderTexLine(b.meta.tldr)} />}
-          <div class="wp-actions">
-            <a href={`${base}/papers/${b.id}/`}>Read online</a>
-            {b.hasPdf && <a href={`${base}/papers/${b.id}/paper.pdf`}>PDF</a>}
-            {b.paperLib && <a href={`${base}/papers/${b.id}/formalization`}>Lean code</a>}
-            {b.slidesMd && <a href={`${base}/papers/${b.id}/slides`}>Slides</a>}
-          </div>
-          <details class="wp-abstract-fold">
-            <summary>Abstract</summary>
-            <p class="wp-abstract" set:html={renderTexLine(b.meta.abstract)} />
-          </details>
-        </section>
-      ))}
+      {listed.map((b) => <PaperEntry bundle={b} />)}
       </div>
 
       <footer class="site-footer">
@@ -139,6 +93,12 @@ const listed = flagship ? bundles.slice(1) : bundles;
 
     <script>
       import { paperAverages } from "../scripts/ratings/api.js";
+      import { initDisclosures } from "../scripts/disclosures.js";
+
+      // Cite panels and AI-score folds. Delegated on the document, so the
+      // sort below — which MOVES entry nodes with appendChild — cannot
+      // detach them (see scripts/disclosures.ts).
+      initDisclosures();
 
       // Client-side reorder of the working-paper list. Server renders it score-desc
       // (best first); "Cluster" regroups by area with a heading per cluster, score-desc

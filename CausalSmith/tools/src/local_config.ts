@@ -23,6 +23,10 @@
 //                      default `workspace-write`; set `danger-full-access` only
 //                      when the machine is already externally confined and its
 //                      Linux bubblewrap/user namespaces are unavailable.
+//   paperSeriesPrefix — the working-paper SERIES this checkout publishes under, e.g. the
+//                      default "CSWP" in `CSWP-2026-008`. A fork running its own series sets
+//                      this (or CAUSALSMITH_PAPER_SERIES_PREFIX) and starts from its own empty
+//                      registry; mixing two series in one registry is refused.
 //   authMode / anthropicAuth / openaiAuth / *ApiKey / *ApiKeyFile / codexApiHome
 //                    — who PAYS for the model calls: the operator's subscription
 //                      logins (default) or an API key you supply. The fields are
@@ -42,6 +46,8 @@ export interface LocalConfig {
   /** Python 3 interpreter for the retrieval scripts; resolved in `src/shared/python.ts`. */
   pythonPath?: string;
   codexSandbox: "workspace-write" | "danger-full-access";
+  /** Working-paper series prefix; see `paperSeriesPrefix()` below for resolution and validation. */
+  paperSeriesPrefix?: string;
   /** Billing path for BOTH runners; per-provider fields below override it.
    *  Parsed and validated in `src/auth.ts`, not here, so that a bad value fails
    *  with an auth-specific message at the dispatch boundary. */
@@ -73,6 +79,18 @@ const CONFIG_DIR = path.resolve(
 const LOCAL_JSON = path.join(CONFIG_DIR, "local.json");
 
 let cached: LocalConfig | null = null;
+/**
+ * Why the parse failure is remembered rather than only warned about.
+ *
+ * A malformed `local.json` degrades to env + defaults, which is the right call for a path or a
+ * timeout — the run limps on and the warning is visible. It is the WRONG call for the paper
+ * series prefix: a fork whose file says `AIWP7` would silently mint permanent CSWP identifiers
+ * because of a syntax error somewhere else in the same file, and a published number cannot be
+ * recalled. So the failure is recorded here and `paperSeriesPrefix()` refuses to guess.
+ * Deliberately consulted by that one function only; every other key keeps its existing
+ * fall-back-and-warn behaviour.
+ */
+let configParseError: string | null = null;
 
 function parsePositiveIntegerConfig(name: string, value: unknown): number {
   const n = Number(String(value).trim());
@@ -91,6 +109,75 @@ function parseCodexSandbox(value: unknown): LocalConfig["codexSandbox"] {
   );
 }
 
+/** The message from a failed `local.json` parse, or null (file absent or parsed cleanly).
+ *  Populated by the first `localConfig()` call, which is memoised alongside the record itself. */
+export function localConfigParseError(): string | null {
+  localConfig();
+  return configParseError;
+}
+
+/** The series every working-paper number in this checkout belongs to, absent other configuration. */
+export const DEFAULT_PAPER_SERIES_PREFIX = "CSWP";
+
+/** Letters and digits, starting with a letter, 2–10 characters — what reads as a series tag on a
+ *  PDF and in a citation. Anything else is rejected: the prefix goes into permanent identifiers,
+ *  so a typo would be published rather than corrected. */
+export const PAPER_SERIES_PREFIX_RE = /^[A-Z][A-Z0-9]{1,9}$/;
+
+export function assertPaperSeriesPrefix(value: unknown): string {
+  if (typeof value !== "string" || !PAPER_SERIES_PREFIX_RE.test(value)) {
+    throw new Error(
+      `Invalid paperSeriesPrefix: ${JSON.stringify(value)} (expected 2-10 chars, uppercase letters and ` +
+        `digits, starting with a letter — e.g. "${DEFAULT_PAPER_SERIES_PREFIX}"). Set it in ` +
+        "tools/config/local.json or CAUSALSMITH_PAPER_SERIES_PREFIX.",
+    );
+  }
+  return value;
+}
+
+/**
+ * Decide the series from its three inputs. Pure, so the precedence and the fail-closed rule can
+ * be tested without a config file on disk.
+ *
+ * Env beats file beats default, as everywhere else. The exception is `parseError`: when
+ * `local.json` EXISTS but could not be read, the file's opinion is unknown rather than absent,
+ * and defaulting would mint identifiers for the wrong series. An explicit env var still wins,
+ * because that is an operator stating the answer rather than the code guessing it.
+ */
+export function resolveSeriesPrefix(
+  envValue: string | undefined,
+  fileValue: string | undefined,
+  parseError: string | null,
+): string {
+  if (envValue !== undefined) return assertPaperSeriesPrefix(envValue);
+  if (parseError !== null) {
+    throw new Error(
+      `Cannot determine the working-paper series: ${LOCAL_JSON} exists but could not be parsed ` +
+        `(${parseError}). Working-paper numbers are permanent, so the series is never guessed — ` +
+        "fix the file, or set CAUSALSMITH_PAPER_SERIES_PREFIX explicitly.",
+    );
+  }
+  return assertPaperSeriesPrefix(fileValue ?? DEFAULT_PAPER_SERIES_PREFIX);
+}
+
+/**
+ * The configured working-paper series prefix.
+ *
+ * Called exactly TWICE in the tree — at the top of `stageP4` and at the top of the backfill's
+ * `main` — and the resulting string is then threaded as a required parameter through everything
+ * that formats, parses, allocates or validates a number. That is why none of those functions
+ * takes a default: one operation resolves the series once, so no mid-operation environment change
+ * can make two halves of the same write disagree about which series they belong to, and the type
+ * system makes a second lookup impossible rather than merely discouraged.
+ */
+export function paperSeriesPrefix(): string {
+  return resolveSeriesPrefix(
+    process.env.CAUSALSMITH_PAPER_SERIES_PREFIX,
+    localConfig().paperSeriesPrefix,
+    localConfigParseError(),
+  );
+}
+
 export function localConfig(): LocalConfig {
   if (cached) return cached;
   let file: Partial<LocalConfig> = {};
@@ -102,6 +189,7 @@ export function localConfig(): LocalConfig {
       }
     }
   } catch (err) {
+    configParseError = err instanceof Error ? err.message : String(err);
     // Malformed local.json → fall back to env + defaults. Do NOT swallow
     // silently: a single-backslash Windows path (`E:\App\bash.exe`) is invalid
     // JSON, and a silent fallback strips `gitBashPath`, which makes every
@@ -137,6 +225,9 @@ export function localConfig(): LocalConfig {
     codexSandbox: parseCodexSandbox(
       process.env.CAUSALSMITH_CODEX_SANDBOX ?? file.codexSandbox ?? "workspace-write",
     ),
+    // Passed through VERBATIM and validated in `paperSeriesPrefix()`, the only reader, so the
+    // prefix is checked at the point a number is minted rather than at unrelated CLI startup.
+    paperSeriesPrefix: file.paperSeriesPrefix ?? undefined,
     // Auth fields pass through VERBATIM: `src/auth.ts` owns their precedence
     // (env beats file) and their validation, so duplicating either here would
     // give two places to disagree about which credential a run used.

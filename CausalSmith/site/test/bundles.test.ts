@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { mkdtemp, cp, readFile, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { loadBundle, loadBundles, verifiedBadge } from "../src/lib/bundles.js";
+import { crosswalkLabels, loadBundle, loadBundles, verifiedBadge } from "../src/lib/bundles.js";
 import { findBlockInner, blockDigest } from "../src/lib/nlLinks.js";
 
 const FIXTURE = resolve(import.meta.dirname, "..", "fixtures", "demo_paper_v1");
@@ -467,12 +467,184 @@ describe("bundle loader", () => {
     await rm(root, { recursive: true, force: true });
   });
 
+  it("loads the AI referee report and its round history", async () => {
+    const b = await loadBundle(FIXTURE, "demo_paper_v1");
+    expect(b.review?.score).toBe(6.4);
+    expect(b.review?.counts.total).toBe(3);
+    expect(b.review?.majors).toHaveLength(1);
+    // round_000 plus the shipped report.
+    expect(b.review?.history.map((r) => r.round)).toEqual([1, 2]);
+    expect(b.review?.history[1].current).toBe(true);
+    // The crosswalk supplies the labels the review's \cref{obj:…} resolve to.
+    expect(crosswalkLabels(b)).toMatchObject({ "T-1": "Theorem 1", "P-2": "Assumption 1" });
+  });
+
+  it("carries the new identity fields through from meta.json", async () => {
+    const b = await loadBundle(FIXTURE, "demo_paper_v1");
+    expect(b.meta.wp_number).toBe("CSWP-2026-000");
+    expect(b.meta.version).toBe(3);
+    expect(b.meta.revised).toBe("2026-08-27");
+    expect(b.meta.doi).toBe("10.5281/zenodo.0000000");
+    expect(b.meta.versions?.at(-1)).toEqual({
+      v: 3,
+      date: "2026-08-27",
+      paper_sha256: "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+    });
+    // Backfilled historical entries carry a null hash — never assume one.
+    expect(b.meta.versions?.[0].paper_sha256).toBeNull();
+  });
+
+  // Every bundle emitted before the review became visible is in one of these
+  // states. None of them may cost the page, let alone the build.
+  it("treats an absent, unreadable or empty review as simply no review", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-review-"));
+    const cases: [string, string | null][] = [
+      ["no_review", null],
+      ["torn_review", "{ not json"],
+      ["empty_review", JSON.stringify({ recommendation: "accept" })],
+    ];
+    for (const [id, content] of cases) {
+      const dir = join(root, id);
+      await cp(FIXTURE, dir, { recursive: true });
+      await rm(join(dir, "p5_review_history"), { recursive: true, force: true });
+      if (content === null) await rm(join(dir, "p5_review.json"));
+      else await writeFile(join(dir, "p5_review.json"), content);
+      const b = await loadBundle(dir, id);
+      expect(b.review, id).toBeNull();
+      expect(b.entries, id).toHaveLength(2); // the rest of the bundle is unaffected
+    }
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("keeps the readable rounds when one history file is torn", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-rounds-"));
+    const dir = join(root, "rounds_v1");
+    await cp(FIXTURE, dir, { recursive: true });
+    await writeFile(join(dir, "p5_review_history", "round_001.json"), "{ truncated");
+    await writeFile(join(dir, "p5_review_history", "notes.md"), "not a round");
+    const b = await loadBundle(dir, "rounds_v1");
+    expect(b.review?.history).toHaveLength(2); // round_000 + the current report
+    await rm(root, { recursive: true, force: true });
+  });
+
+  // Zenodo deposit bookkeeping lands beside the bundle. The site is a renderer
+  // over a fixed set of artifacts: it must not read it, and it must not leak
+  // into anything the pages serialize.
+  it("ignores a zenodo.json sidecar entirely", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-zenodo-"));
+    const dir = join(root, "zenodo_v1");
+    await cp(FIXTURE, dir, { recursive: true });
+    await writeFile(
+      join(dir, "zenodo.json"),
+      JSON.stringify({ deposition_id: 424242, bucket: "s3://secret", state: "unsubmitted" }),
+    );
+    const b = await loadBundle(dir, "zenodo_v1");
+    expect(JSON.stringify({ ...b, bodyHtml: "" })).not.toMatch(/deposition_id|424242|unsubmitted/);
+    await rm(root, { recursive: true, force: true });
+  });
+
+  // ONE score. meta.score is a COPY the pipeline takes out of the report, and
+  // the two can drift — the landing said 7.0 while the review page said 6.6
+  // (audit, 2026-09-21). The report wins, everywhere.
+  it("normalises one score, preferring the report over the copied metadata", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-score-"));
+    const mk = async (id: string, metaScore: unknown, reviewScore: unknown) => {
+      const dir = join(root, id);
+      await cp(FIXTURE, dir, { recursive: true });
+      await rm(join(dir, "p5_review_history"), { recursive: true, force: true });
+      const meta = JSON.parse(await readFile(join(dir, "meta.json"), "utf8"));
+      if (metaScore === undefined) delete meta.score;
+      else meta.score = metaScore;
+      await writeFile(join(dir, "meta.json"), JSON.stringify(meta));
+      if (reviewScore === undefined) await rm(join(dir, "p5_review.json"));
+      else {
+        const rv = JSON.parse(await readFile(join(dir, "p5_review.json"), "utf8"));
+        rv.score = reviewScore;
+        await writeFile(join(dir, "p5_review.json"), JSON.stringify(rv));
+      }
+      return dir;
+    };
+    // The real drift case: meta says 7.0, the report says 6.6.
+    expect((await loadBundle(await mk("drift", 7.0, 6.6), "drift")).score).toBe(6.6);
+    // No report at all: the copied score is all there is.
+    expect((await loadBundle(await mk("no_review", 7.0, undefined), "no_review")).score).toBe(7);
+    // A report with no score of its own falls back rather than blanking out.
+    expect((await loadBundle(await mk("no_rv_score", 7.0, null), "no_rv_score")).score).toBe(7);
+    // Neither: no badge, and the sort puts it last.
+    expect((await loadBundle(await mk("none", undefined, undefined), "none")).score).toBeNull();
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("sorts on the normalised score, not on the metadata copy", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-scoresort-"));
+    const mk = async (id: string, metaScore: number, reviewScore: number) => {
+      const dir = join(root, id);
+      await cp(FIXTURE, dir, { recursive: true });
+      const meta = JSON.parse(await readFile(join(dir, "meta.json"), "utf8"));
+      meta.score = metaScore;
+      await writeFile(join(dir, "meta.json"), JSON.stringify(meta));
+      const rv = JSON.parse(await readFile(join(dir, "p5_review.json"), "utf8"));
+      rv.score = reviewScore;
+      await writeFile(join(dir, "p5_review.json"), JSON.stringify(rv));
+    };
+    // By meta the order would be a, b; by report it is b, a.
+    await mk("a", 9, 5);
+    await mk("b", 4, 8);
+    expect((await loadBundles([root])).map((x) => x.id)).toEqual(["b", "a"]);
+    await rm(root, { recursive: true, force: true });
+  });
+
+  // A bundle with no report says nothing; a report that is THERE and broken
+  // must say so, or the fold, the link and the route vanish in silence.
+  it("warns loudly for a present-but-unreadable review, and stays quiet for an absent one", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-rvwarn-"));
+
+    const absent = join(root, "absent");
+    await cp(FIXTURE, absent, { recursive: true });
+    await rm(join(absent, "p5_review.json"));
+    await rm(join(absent, "p5_review_history"), { recursive: true, force: true });
+    let warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect((await loadBundle(absent, "absent")).review).toBeNull();
+    expect(warn.mock.calls.flat().join(" ")).not.toContain("p5_review.json");
+    warn.mockRestore();
+
+    const torn = join(root, "torn");
+    await cp(FIXTURE, torn, { recursive: true });
+    await writeFile(join(torn, "p5_review.json"), '{"summary": "truncated');
+    warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const b = await loadBundle(torn, "torn");
+    expect(b.review).toBeNull();
+    const said = warn.mock.calls.flat().join(" ");
+    expect(said).toContain("torn"); // names the bundle
+    expect(said).toContain("p5_review.json"); // names the file
+    expect(said).toContain("not valid JSON"); // and the reason
+    expect(b.entries).toHaveLength(2); // the build goes on
+    warn.mockRestore();
+
+    await rm(root, { recursive: true, force: true });
+  });
+
   it("discovery skips non-bundle dirs and missing roots", async () => {
     const root = await mkdtemp(join(tmpdir(), "site-bundles-"));
     await cp(FIXTURE, join(root, "demo_paper_v1"), { recursive: true });
     await cp(FIXTURE, join(root, "not_a_bundle"), { recursive: true });
     await rm(join(root, "not_a_bundle", "meta.json"));
     const bundles = await loadBundles([root, "/does/not/exist"]);
+    expect(bundles.map((b) => b.id)).toEqual(["demo_paper_v1"]);
+    await rm(root, { recursive: true, force: true });
+  });
+
+  // The working-paper registry is a FILE living beside the bundle directories.
+  // Discovery keys on meta.json, so it is skipped — but nothing said so before.
+  it("discovery skips a plain file in the bundle root, such as _wp_registry.json", async () => {
+    const root = await mkdtemp(join(tmpdir(), "site-registry-"));
+    await cp(FIXTURE, join(root, "demo_paper_v1"), { recursive: true });
+    await writeFile(
+      join(root, "_wp_registry.json"),
+      JSON.stringify({ demo_paper_v1: "CSWP-2026-000" }),
+    );
+    await writeFile(join(root, "README.md"), "not a bundle either");
+    const bundles = await loadBundles([root]);
     expect(bundles.map((b) => b.id)).toEqual(["demo_paper_v1"]);
     await rm(root, { recursive: true, force: true });
   });

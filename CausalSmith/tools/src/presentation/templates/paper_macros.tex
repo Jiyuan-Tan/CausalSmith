@@ -61,6 +61,11 @@
 \newcommand{\verificationfootnotemark}{\footnotemark}
 \newcommand{\verificationfootnotetext}[1]{\footnotetext{#1}}
 \newcommand{\verificationfootnote}[1]{\verificationfootnotemark\verificationfootnotetext{#1}}
+% xcolor before hyperref (hyperref would otherwise pull in plain `color` for colorlinks, and a
+% later xcolor load clashes). The page-1 identity stamp at the end of this file needs a grey.
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{eso-pic}
 % hyperref follows natbib and the environment macros; cleveref must follow hyperref.
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
@@ -84,3 +89,57 @@
 \Crefname{citedresult}{Cited result}{Cited results}
 \crefname{algorithmbox}{Algorithm}{Algorithms}
 \Crefname{algorithmbox}{Algorithm}{Algorithms}
+% ---------------------------------------------------------------------------
+% Page-1 identity stamp (arXiv style) and the pinned title-block date.
+%
+% Split of responsibility: THIS file owns the FORMAT (placement, font, colour, punctuation),
+% the generated `paper_stamp.tex` owns only the VALUES (number+version, area, revised date,
+% DOI, link target). P4 refreshes this template on every emit, so a layout fix reaches every
+% bundle from a recompile; and because `paper_stamp.tex` is not one of the P2 assembly
+% digest's authored inputs, a DOI that arrives after publication needs only that one small
+% file rewritten plus a recompile — never a redraft, never a reassembly.
+%
+% Defaults first, so a bundle WITHOUT a stamp file compiles exactly as it always did:
+% `\cspaperdate` falls back to `\today` and no stamp is drawn.
+\providecommand*{\cspaperdate}{\today}  % the \date{} target
+\providecommand*{\csstampid}{}          % e.g. CSWP-2026-008v3 (empty ⇒ no stamp at all)
+\providecommand*{\csstamparea}{}        % e.g. Stat
+\providecommand*{\csstampdate}{}        % e.g. 27 Aug 2026
+\providecommand*{\csstampdoi}{}         % e.g. 10.5281/zenodo.123 (empty ⇒ DOI part omitted)
+\providecommand*{\csstamplink}{}        % href target (DOI url, else the paper's page; may be empty)
+\IfFileExists{paper_stamp.tex}{\input{paper_stamp.tex}}{}
+\makeatletter
+% Field order is deliberate: the DOI is NEVER the last token on the line. A trailing identifier
+% runs into whatever a text extractor emits next, which makes it unsafe to match mechanically
+% (the Zenodo stamp matcher reads exactly this line); the date is a safe terminator.
+%   <number>v<version> · doi:<doi> · [<Area>] <date>      — with a DOI
+%   <number>v<version> · [<Area>] <date>                  — without
+\newcommand{\cs@stampsep}{\,\textperiodcentered\,}
+\newcommand{\cs@stamptext}{%
+  \csstampid
+  \ifx\csstampdoi\@empty\else\cs@stampsep doi:\csstampdoi\fi
+  \ifx\csstamparea\@empty\else\cs@stampsep[\csstamparea]\fi
+  \ifx\csstampdate\@empty\else\quad\csstampdate\fi
+}
+\ifx\csstampid\@empty\else
+  \definecolor{csstampgrey}{gray}{0.45}
+  % Background shipout material: it occupies no space, so the text block and the \thanks
+  % footnote are byte-identical to an unstamped compile. The starred form applies to the
+  % NEXT page shipped only — i.e. page 1. Placed in the left margin (the text block starts
+  % at 1.1in), reading bottom-to-top, in a Times-like face at 8pt.
+  \AddToShipoutPictureBG*{%
+    \AtPageLowerLeft{%
+      \put(\LenToUnit{0.42in},\LenToUnit{1.1in}){%
+        \rotatebox{90}{%
+          \fontfamily{ptm}\fontsize{8}{10}\selectfont
+          \ifx\csstamplink\@empty
+            \textcolor{csstampgrey}{\cs@stamptext}%
+          \else
+            \expandafter\href\expandafter{\csstamplink}{\textcolor{csstampgrey}{\cs@stamptext}}%
+          \fi
+        }%
+      }%
+    }%
+  }
+\fi
+\makeatother

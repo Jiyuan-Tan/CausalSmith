@@ -11,14 +11,44 @@
  */
 import { SERIES_NAME } from "../lib/config.js";
 
+/**
+ * Highwire Press tags for a working paper. Google Scholar indexes a page as a
+ * paper only when it finds these — without them a CausalSmith working paper is
+ * an ordinary web page to Scholar and never becomes a citable record. Only the
+ * paper page passes this; every other page's head is unchanged.
+ */
+export interface CitationTags {
+  title: string;
+  /** Corporate author ("CausalSmith"), one entry per `citation_author` tag. */
+  authors: string[];
+  /** ISO date of the CURRENT version — what a citer should record. */
+  publicationDate: string;
+  /** ISO date the paper first went online (v1). */
+  onlineDate?: string | null;
+  institution: string;
+  /** `CSWP-2026-008`; omitted before a number is assigned. */
+  number?: string | null;
+  /** Absolute URL of the PDF; omitted when the bundle ships no PDF. */
+  pdfUrl?: string | null;
+  doi?: string | null;
+}
+
 interface Props {
   title: string;
   description: string;
   /** "article" for papers; "website" for the hub and library pages. */
   ogType?: string;
+  /** Present only on paper pages — see `CitationTags`. */
+  citation?: CitationTags | null;
 }
 
-const { title, description, ogType = "website" } = Astro.props;
+const { title, description, ogType = "website", citation = null } = Astro.props;
+
+/** Highwire wants `YYYY/MM/DD`; a non-ISO value is dropped rather than guessed. */
+function scholarDate(iso: string | null | undefined): string | null {
+  const m = iso ? /^(\d{4})-(\d{2})-(\d{2})/.exec(iso) : null;
+  return m ? `${m[1]}/${m[2]}/${m[3]}` : null;
+}
 
 /** TeX control words worth keeping as a glyph; anything else keeps its name. */
 const TEX_GLYPH: Record<string, string> = {
@@ -61,8 +91,30 @@ function clamp(text: string, max = 160): string {
 const desc = clamp(plain(description));
 const pageTitle = plain(title);
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : null;
+
+const pubDate = citation ? scholarDate(citation.publicationDate) : null;
+const onlineDate = citation ? scholarDate(citation.onlineDate) : null;
 ---
 
+{/* Marks the document as scripted BEFORE anything paints, so the disclosures
+    are collapsed without a flash. The watchdog is the other half: collapsing
+    is only safe once the controller that REOPENS them has actually loaded, so
+    if `js-ready` has not appeared shortly after the document is ready, the
+    marker is withdrawn and the panels fall back to open (audit r3). */}
+<script is:inline>
+  (function () {
+    var d = document;
+    d.documentElement.classList.add("js");
+    function check() {
+      setTimeout(function () {
+        var r = d.documentElement.classList;
+        if (!r.contains("js-ready")) r.remove("js");
+      }, 3000);
+    }
+    if (d.readyState === "loading") d.addEventListener("DOMContentLoaded", check);
+    else check();
+  })();
+</script>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{pageTitle}</title>
@@ -76,3 +128,15 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : nu
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={desc} />
+{citation && (
+  <>
+    <meta name="citation_title" content={plain(citation.title)} />
+    {citation.authors.map((a) => <meta name="citation_author" content={a} />)}
+    {pubDate && <meta name="citation_publication_date" content={pubDate} />}
+    {onlineDate && <meta name="citation_online_date" content={onlineDate} />}
+    <meta name="citation_technical_report_institution" content={citation.institution} />
+    {citation.number && <meta name="citation_technical_report_number" content={citation.number} />}
+    {citation.pdfUrl && <meta name="citation_pdf_url" content={citation.pdfUrl} />}
+    {citation.doi && <meta name="citation_doi" content={citation.doi} />}
+  </>
+)}

@@ -50,7 +50,7 @@ function emph(escaped: string): string {
 const TOK_OPEN = String.fromCharCode(0xe000);
 const TOK_CLOSE = String.fromCharCode(0xe001);
 
-function inline(s: string, compact = false): string {
+function inline(s: string, compact = false, typography = false): string {
   // Render code/math spans into placeholders FIRST, then apply emphasis across the
   // whole (placeholder-bearing) string, then restore. This lets emphasis span a
   // code/math span — e.g. `**General-`n` identification.**` — which a
@@ -78,10 +78,72 @@ function inline(s: string, compact = false): string {
     tokens.push(html);
     return `${TOK_OPEN}${tokens.length - 1}${TOK_CLOSE}`;
   });
-  return emph(esc(withPlaceholders)).replace(
+  // TeX typography is applied ONLY when the caller says the text came from a
+  // `.tex` source. `inline` also renders Lean docstrings, where `--` opens a
+  // comment and an en dash would be a lie: turning this on unconditionally
+  // changed 470 of 13,793 library docstrings (audit r4).
+  const dashed = typography
+    ? texTypography(emph(esc(withPlaceholders)), { ties: false })
+    : emph(esc(withPlaceholders));
+  return dashed.replace(
     new RegExp(`${TOK_OPEN}(\\d+)${TOK_CLOSE}`, "g"),
     (_, i) => tokens[Number(i)],
   );
+}
+
+
+/**
+ * TeX typography — `--`/`---` dashes and `~` ties — applied only where those
+ * characters really are typography.
+ *
+ * They are NOT typography inside code, inside a URL, or inside an identifier:
+ * `\texttt{--help}` became "–help" and `https://x--y.test/a_b~c` became
+ * "https://x–y.test/a_b c" (audit r2). Since this runs over `.tex`-sourced
+ * prose from docstrings, abstracts and referee reports alike, protecting those
+ * three shapes is what keeps a Lean name or a CLI flag intact.
+ */
+export function texTypography(s: string, opts: { ties?: boolean } = {}): string {
+  const tie = opts.ties !== false;
+  // `<code>…</code>` regions are literal by definition.
+  return s
+    .split(/(<code\b[^>]*>[\s\S]*?<\/code>)/)
+    .map((part, i) => {
+      if (i % 2 === 1) return part;
+      return part
+        .split(/(\s+)/)
+        .map((token) => {
+          // Classify the WORD, not the word plus the punctuation around it:
+          // `"--help"` and `(--help)` are the same flag (audit r3).
+          const m = /^([(\[{"'\u201c\u2018]*)([\s\S]*?)([)\]}"'\u201d\u2019.,;:!?]*)$/.exec(token);
+          const core = m ? m[2] : token;
+          return isLiteralToken(core) ? token : convertToken(token, tie);
+        })
+        .join("");
+    })
+    .join("");
+}
+
+/** A URL, a flag, or a dotted/underscored identifier: all literal. */
+function isLiteralToken(token: string): boolean {
+  if (!token.trim()) return false;
+  return (
+    // A FLAG is `--word`; a bare `---` between spaces is an em dash.
+    /^--[A-Za-z]/.test(token) ||
+    /:\/\//.test(token) ||
+    /^(?:https?:|www\.|mailto:)/i.test(token) ||
+    token.includes("_") ||
+    token.includes("::") ||
+    // A dotted IDENTIFIER has a letter beside the dot (`Causalean.Graph.dSep`,
+    // `Mathlib.Order.Basic--like`). An ABBREVIATION ends in its own period, so
+    // the dash follows a dot — `e.g.--next`, `U.S.--based` are prose with an
+    // en dash, and `3.1--3.2` is a numeric range (audit r3).
+    (/[A-Za-z][.][A-Za-z0-9]|[A-Za-z0-9][.][A-Za-z]/.test(token) && !/\.--/.test(token))
+  );
+}
+
+function convertToken(token: string, tie: boolean): string {
+  const out = token.replace(/---/g, "—").replace(/--/g, "–");
+  return tie ? out.replace(/~/g, " ") : out;
 }
 
 /** Words left lowercase in Title Case unless first/last: articles, coordinating
@@ -109,11 +171,41 @@ export function titleCase(title: string): string {
     .join(" ");
 }
 
+/**
+ * Flattens the cross-reference and citation macros that .tex-sourced strings
+ * carry. None of these pages have label targets, and a bibliography is not in
+ * front of the reader, so the macro becomes the thing it names: the label id,
+ * or the bib key with its locator. Two abstracts were publishing raw `\citet`
+ * before this existed (audit, 2026-09-21).
+ */
+export function flattenTexRefs(s: string): string {
+  return s
+    .replace(
+      /~?\\(?:cite[tpalyusn]*|textcite|parencite)\s*(?:\[([^\]]*)\])?\s*\{([^{}]*)\}/g,
+      (_m, loc: string | undefined, keys: string) => {
+        const names = keys.split(",").map((k) => k.trim()).filter(Boolean).join(", ");
+        return loc && loc.trim() ? `${names} (${loc.trim()})` : names;
+      },
+    )
+    .replace(/~(?=\\(?:[cC]|eq|lean|auto)?ref\{)/g, " ")
+    .replace(/\\(?:[cC]|eq|lean|auto)?ref\{(?:obj:)?([\w:.-]+)\}/g, "$1");
+}
+
+/**
+ * What a caller passes as `renderTexLine`'s second argument when the string
+ * really did come out of a `.tex` file — a paper title, tldr or abstract.
+ *
+ * TeX typography (`--` → en dash) is correct there and WRONG everywhere else
+ * this renderer is used: a Lean docstring's `--` opens a comment.
+ */
+export const TEX_SOURCED = { typography: true } as const;
+
 /** Renders a one-line TeX-bearing string (paper title/abstract) to HTML:
- *  $…$ math via KaTeX, `\ref{obj:X}` flattened to the plain id (the index
- *  page has no label targets), everything else escaped. */
-export function renderTexLine(s: string): string {
-  return inline(s.replace(/~?\\ref\{obj:([\w-]+)\}/g, "$1"));
+ *  $…$ math via KaTeX, cross-references and citations flattened (the index
+ *  page has no label targets), everything else escaped. Typography is off
+ *  unless the caller passes `TEX_SOURCED`. */
+export function renderTexLine(s: string, opts: { typography?: boolean } = {}): string {
+  return inline(flattenTexRefs(s), false, opts.typography === true);
 }
 
 /** Renders a TeX-bearing string for a compact index row (the Formal-layer panel's
@@ -122,10 +214,7 @@ export function renderTexLine(s: string): string {
  *  `\ref{obj:…}` — the panel has no label targets, so a surviving `\cref{…}` or
  *  `Theorem~\ref{thm:…}` would print as raw source. The `~` becomes a space. */
 export function renderTexCompact(s: string): string {
-  const flat = s
-    .replace(/~(?=\\(?:[cC]|eq)?ref\{)/g, " ")
-    .replace(/\\(?:[cC]|eq)?ref\{(?:obj:)?([\w:.-]+)\}/g, "$1");
-  return inline(flat, true);
+  return inline(flattenTexRefs(s), true);
 }
 
 /** Renders a Formal-layer row's LABEL. A `symbol` row's label IS a formula and is written

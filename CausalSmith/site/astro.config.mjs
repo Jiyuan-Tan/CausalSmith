@@ -58,10 +58,12 @@ export default defineConfig({
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   // The sitemap is how search engines discover the library and paper pages —
   // nothing outside the site links to them. Data endpoints and the PDF routes
-  // are not pages, so they stay out of it.
+  // are not pages, so they stay out of it, and so do the AI review pages: a
+  // machine-written report should not compete in search with the paper it is
+  // about (it is `noindex,follow` for the same reason).
   integrations: [
     copyBundlePdfs(),
-    sitemap({ filter: (page) => !/\.(json|pdf)$/.test(page) }),
+    sitemap({ filter: (page) => !/\.(json|pdf)$/.test(page) && !/\/review\/?$/.test(page) }),
   ],
   vite: {
     server: {

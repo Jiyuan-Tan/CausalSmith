@@ -119,6 +119,18 @@ export const FormalLayer = z.object({
 });
 export type FormalLayer = z.infer<typeof FormalLayer>;
 
+/** One entry of a paper's revision history. `paper_sha256` is the sha256 of the on-disk
+ *  `paper.tex` that version was compiled from; it is what P4 compares against to decide
+ *  whether an emit is a new version, and what the site matches a review's
+ *  `manuscript_sha256` to. Null on a backfilled historical entry whose bytes are not
+ *  recoverable — "unknown", never "unchanged". */
+export const PaperVersionEntry = z.object({
+  v: z.number().int().positive(),
+  date: z.string(), // ISO YYYY-MM-DD
+  paper_sha256: z.string().nullable().default(null),
+});
+export type PaperVersionEntry = z.infer<typeof PaperVersionEntry>;
+
 export const PaperMeta = z.object({
   qid: z.string(),
   spec: z.string(),
@@ -128,7 +140,16 @@ export const PaperMeta = z.object({
   area: z.string(),
   authorship: z.string().nullable(), // user decides per paper; null until then
   created: z.string(),
+  // Citation identity. Every field below defaults, so a meta.json written before this block
+  // existed still parses — the site treats an absent value as "omit that UI piece".
+  // Immutable once assigned; owned by the tracked registry (`wp_registry.ts`), never recomputed.
   wp_number: z.string().nullable(),
+  version: z.number().int().positive().default(1),
+  revised: z.string().nullable().default(null), // ISO date of the current version; == created for v1
+  versions: z.array(PaperVersionEntry).default([]), // ascending history
+  // Zenodo (WP-C writes these; P4 only preserves them across re-emits).
+  doi: z.string().nullable().default(null), // CONCEPT doi — one per paper, what the stamp/BibTeX show
+  version_doi: z.string().nullable().default(null),
   // P5 referee's holistic overall score (0–10, one decimal) + one-line rationale.
   // Injected by P5 (after P4 emits meta); advisory — gates nothing. Drives the
   // site's "AI reviewer score" badge and best-first ordering. null = unreviewed.

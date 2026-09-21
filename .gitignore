@@ -31,6 +31,26 @@ internal/Paper/tmp/
 # proper-lockfile artifacts around the study graph
 CausalSmith/doc/study/.graph.lock
 CausalSmith/doc/study/.graph.lock.*
+# proper-lockfile artifacts around the paper bundles' published metadata:
+# the working-paper number registry, and each bundle's meta.json (see
+# presentation/wp_registry.ts and presentation/meta_store.ts). These locks live on the SHARED
+# filesystem beside what they guard — a host-local lock synchronizes nothing between cluster
+# nodes — so they land inside a tracked, exported directory and must be ignored here.
+# Exact names only: a trailing wildcard would also swallow a legitimately tracked file whose
+# name merely starts with the sentinel's (e.g. a bundle's `.meta.lock-notes`).
+CausalSmith/doc/presentation/.wp_registry.lock
+CausalSmith/doc/presentation/.wp_registry.lock.lock/
+CausalSmith/doc/presentation/*/.meta.lock
+CausalSmith/doc/presentation/*/.meta.lock.lock/
+CausalSmith/doc/presentation/*/.emit.lock
+CausalSmith/doc/presentation/*/.emit.lock.lock/
+CausalSmith/doc/presentation/*/.zenodo.lock
+CausalSmith/doc/presentation/*/.zenodo.lock.lock/
+# The restamp copy-back stages each file beside its destination and renames it into place, so the
+# flip is atomic (presentation/restamp.ts). A run killed between the staging and the rename leaves
+# `<name>.<pid>.restamp-tmp` behind; the next run sweeps them, and until then they are debris that
+# must not show up as untracked files in a bundle directory that IS tracked.
+CausalSmith/doc/presentation/*/*.restamp-tmp
 # proper-lockfile artifacts around the shared research ledgers
 # (ledger_update.ts locks `<ledger>.lock` beside SUBSTRATE_DEBT.md / CITED_DEPENDENCIES.md)
 CausalSmith/doc/research/*.md.lock

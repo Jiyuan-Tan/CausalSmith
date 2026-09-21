@@ -1,0 +1,92 @@
+---
+/**
+ * The inline citation panel: BibTeX | Plain text, with Copy.
+ *
+ * Inline rather than a modal (user decision, layout B) — on the landing page a
+ * dialog would tear the reader out of the list they are scanning, and on a
+ * phone a modal over a 720px column is all chrome. Both bodies are rendered
+ * server-side and one is hidden, so the panel needs no client-side formatting
+ * and degrades to "both citations visible" if the script never runs.
+ *
+ * Every identity field is optional: a bundle with no DOI and no working-paper
+ * number still gets a complete, correct entry.
+ */
+import {
+  bibtex, conceptDoi, doiUrl, formatDate, paperUrl, plainCitation,
+  validDate, validVersion, type CitationMeta,
+} from "../lib/citation.js";
+
+interface Props {
+  meta: CitationMeta;
+  /** DOM id — the `CiteButton`'s `aria-controls` target. */
+  id: string;
+}
+const { meta, id } = Astro.props as Props;
+const ctx = {
+  // The canonical origin is whatever this build was configured with; a
+  // hardcoded causalsmith.org would be wrong in dev and on a project-path deploy.
+  site: Astro.site ? Astro.site.href : null,
+  base: import.meta.env.BASE_URL.replace(/\/$/, ""),
+  // No `author` here on purpose: `citationAuthor` takes `meta.authorship` when
+  // the bundle records one and falls back to the corporate default, so the
+  // BibTeX, the plain text and the page's Scholar tag all name the same author.
+};
+const bib = bibtex(meta, ctx);
+const plain = plainCitation(meta, ctx);
+// `conceptDoi` is the gate: a sandbox or malformed DOI is treated as absent
+// everywhere, so the panel shows the page URL instead of a dead link.
+const doiId = conceptDoi(meta.doi);
+const doi = doiUrl(meta.doi);
+const url = paperUrl(meta, ctx);
+// Every field is validated before it is printed: `meta.json` is data, and an
+// invalid date must read as absent rather than appear raw (audit r4).
+const version = validVersion(meta.version);
+const citedDate = formatDate(validDate(meta.revised) ?? validDate(meta.created));
+---
+
+<div class="cite-panel" id={id} data-cite-panel data-collapsed>
+  {/* Copy sits OUTSIDE the tablist: a tablist may contain only tabs, and a
+      screen reader announcing "tab 3 of 3, Copy" is simply wrong. Roving
+      tabindex + Left/Right/Home/End is the standard tabs pattern; with no
+      JavaScript both tabs are still reachable and the BibTeX pane is shown. */}
+  <div class="cite-tabs">
+    <div class="cite-tablist" role="tablist" aria-label="Citation format">
+      <button
+        type="button"
+        role="tab"
+        id={`${id}-tab-bibtex`}
+        data-cite-tab="bibtex"
+        aria-selected="true"
+        aria-controls={`${id}-bibtex`}
+        tabindex="0"
+      >BibTeX</button>
+      <button
+        type="button"
+        role="tab"
+        id={`${id}-tab-text`}
+        data-cite-tab="text"
+        aria-selected="false"
+        aria-controls={`${id}-text`}
+        tabindex="-1"
+      >Plain text</button>
+    </div>
+    <button type="button" class="cite-copy" data-cite-copy>Copy</button>
+  </div>
+  {/* `tabindex="0"`: the BibTeX body scrolls horizontally, and a scrollable
+      region must be reachable by keyboard. */}
+  <pre class="cite-body" role="tabpanel" tabindex="0" aria-labelledby={`${id}-tab-bibtex`} data-cite-body="bibtex" id={`${id}-bibtex`}>{bib}</pre>
+  <div class="cite-body cite-body-text" role="tabpanel" tabindex="0" aria-labelledby={`${id}-tab-text`} data-cite-body="text" id={`${id}-text`} data-collapsed>{plain}</div>
+  <div class="cite-foot">
+    {doiId ? (
+      <span>DOI <code>{doiId}</code></span>
+    ) : (
+      url && <span>Cite by URL: <code>{url}</code></span>
+    )}
+    {version !== null && (
+      <span>{citedDate ? `Cites version ${version} of ${citedDate}.` : `Cites version ${version}.`}</span>
+    )}
+    {/* arXiv practice, and the user's decision: ONE DOI per paper. It points at
+        the Zenodo record, which is where the per-version DOIs are listed. */}
+    {doi && <span>One DOI per paper; the record it opens lists every version.</span>}
+  </div>
+</div>

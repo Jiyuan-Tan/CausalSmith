@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
@@ -12,9 +13,20 @@ import type { ReviewFinding } from "../revision_brief.js";
 import { buildVerificationContract } from "../verification_contract.js";
 import { loadBankNarrative } from "../bank.js";
 import { findingFingerprint, renderRoutingPlan } from "../revision_routing.js";
+import { utcToday } from "../iso_date.js";
+import { updateBundleMeta } from "../meta_store.js";
 import { MODELS } from "../../models.js";
 
 interface Review {
+  /** ISO date (UTC) the referee ran. The site compares it with the paper's `revised` date to
+   *  decide whether to show a staleness note; a legacy review lacks it and gets generic wording. */
+  reviewed_at: string;
+  /** sha256 of the ON-DISK `paper.tex` at review time — the exact value
+   *  `meta.json`'s `versions[].paper_sha256` records, so the site can say which version was
+   *  reviewed. Note the referee is SENT `refereeTexFor(paperTex)` (a reviewer copy with the
+   *  build-only anchors stripped); hashing that instead would produce a digest matching nothing
+   *  else in the bundle. */
+  manuscript_sha256: string;
   recommendation: "accept" | "minor_revision" | "major_revision" | "reject";
   /** Holistic overall score, 0–10 with one decimal. Advisory (gates nothing). */
   score: number;
@@ -76,10 +88,18 @@ export async function stageP5(io: StageIO): Promise<void> {
     await writeFile(join(io.outDir, "p5.stub"), "dry-run\n");
     return;
   }
-  const paperTex = await readFile(join(io.outDir, "paper.tex"), "utf8").catch(() => null);
-  if (paperTex === null) {
+  // ONE snapshot, hashed immediately. The referee text, the hash recorded beside the review and
+  // the review itself must all describe the SAME bytes. Hashing the file again after the model
+  // returns — minutes later — meant that a P4 re-emit landing mid-review stamped the new
+  // manuscript's hash onto a review of the old one, which is exactly the claim the field exists
+  // to make impossible. Read as bytes so the digest matches `versions[].paper_sha256` exactly.
+  const paperBytes = await readFile(join(io.outDir, "paper.tex")).catch(() => null);
+  if (paperBytes === null) {
     throw new Error("P5: paper.tex not found — run P4 first (or `--from P4`).");
   }
+  const manuscriptSha256 = createHash("sha256").update(paperBytes).digest("hex");
+  const paperTex = paperBytes.toString("utf8");
+  const reviewedAt = utcToday();
   const relatedWork = await readFile(join(io.outDir, "related_work_brief.md"), "utf8").catch(() => "");
   const readRequiredJson = async (name: string) =>
     JSON.parse(await readFile(join(io.outDir, name), "utf8"));
@@ -121,6 +141,11 @@ export async function stageP5(io: StageIO): Promise<void> {
     throw new Error(`P5: referee returned invalid review JSON: ${shaped.error.message}`); // why: invalid enum/array/score shapes must not be treated as usable review artifacts.
   }
   const review: Review = {
+    // Provenance first, so a reader of p5_review.json sees WHAT was reviewed and WHEN before
+    // the verdict. The hash is of paper.tex as it sits on disk — the same bytes P4 recorded in
+    // `versions[].paper_sha256` — so review and version can be matched exactly.
+    reviewed_at: reviewedAt,
+    manuscript_sha256: manuscriptSha256,
     ...shaped.data,
     score_rationale: shaped.data.score_rationale.trim(),
     findings: shaped.data.findings
@@ -151,15 +176,16 @@ export async function stageP5(io: StageIO): Promise<void> {
   // entry produced it.
   await writeFile(join(io.outDir, "p5_revision_routing.md"), renderRoutingPlan(review), "utf8");
 
-  // Sink 1 — the site's per-paper contract. P4 emits meta.json BEFORE P5 runs, so
-  // inject the score by read-modify-write here; P4 preserves it across `--from P4`
-  // re-emits and P5 overwrites it on each pass.
-  const metaPath = join(io.outDir, "meta.json");
-  if (existsSync(metaPath)) {
-    const meta = JSON.parse(await readFile(metaPath, "utf8")) as Record<string, unknown>;
-    meta.score = review.score;
-    meta.score_rationale = review.score_rationale || null;
-    await writeFile(metaPath, JSON.stringify(meta, null, 2) + "\n", "utf8");
+  // Sink 1 — the site's per-paper contract. P4 emits meta.json BEFORE P5 runs, so the score is
+  // injected here. Through the shared writer: this used to be its own unlocked whole-file
+  // read-modify-write, so a DOI published between P5's read and P5's write was reverted by a
+  // stale object that differed from it only in the score. The mutator names only the two keys
+  // P5 owns, so nothing else can be lost whatever else is happening to the bundle.
+  if (existsSync(join(io.outDir, "meta.json"))) {
+    await updateBundleMeta(io.outDir, (meta) => {
+      meta.score = review.score;
+      meta.score_rationale = review.score_rationale || null;
+    });
   } else {
     io.state.notes.push("P5: meta.json absent (P4 not run) — score not injected into the bundle.");
   }

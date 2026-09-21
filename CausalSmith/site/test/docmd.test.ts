@@ -7,7 +7,9 @@ import {
   parseCrosslinks,
   stripCrosslinks,
   renderTexCompact,
+  renderTexLine,
   renderLabel,
+  texTypography,
 } from "../src/lib/docmd.js";
 
 describe("docmd", () => {
@@ -150,3 +152,54 @@ describe("renderLabel", () => {
   });
 });
 
+/**
+ * TeX typography applies to typography, not to code, URLs or identifiers.
+ *
+ * `docmd` renders the WHOLE site — Lean docstrings on the library pages,
+ * paper titles, abstracts — so an unconditional `--` → en dash turned
+ * `\texttt{--help}` into "–help" and a Lean name's tie into a space (audit
+ * r2). These are the shapes that must survive verbatim.
+ */
+describe("texTypography", () => {
+  it("leaves code, URLs, flags and Lean identifiers alone", () => {
+    expect(texTypography("run --help now")).toBe("run --help now");
+    expect(texTypography("at https://x--y.test/a_b~c ok")).toBe("at https://x--y.test/a_b~c ok");
+    expect(texTypography("the decl Causalean.Graph.d_sep~x")).toBe(
+      "the decl Causalean.Graph.d_sep~x",
+    );
+    expect(texTypography("a Mathlib.Order.Basic--like module")).toContain("Basic--like");
+    expect(texTypography("ns::name--x")).toBe("ns::name--x");
+    expect(texTypography("<code>--flag~a</code> and a--b")).toBe(
+      "<code>--flag~a</code> and a\u2013b",
+    );
+  });
+
+  // Classification happens on the WORD, not on the word plus its punctuation.
+  it("sees a flag through the punctuation around it", () => {
+    expect(texTypography('"--help" and (--help) and [--help],')).toBe(
+      '"--help" and (--help) and [--help],',
+    );
+  });
+
+  it("does not mistake an abbreviation for an identifier", () => {
+    expect(texTypography("e.g.--next")).toBe("e.g.\u2013next");
+    expect(texTypography("U.S.--based")).toBe("U.S.\u2013based");
+    expect(texTypography("Causalean.Graph.dSep--x")).toBe("Causalean.Graph.dSep--x");
+  });
+
+  it("still converts ordinary typography, including numeric ranges", () => {
+    expect(texTypography("pages 1--2")).toBe("pages 1\u20132");
+    expect(texTypography("Definitions 3.1--3.2 of")).toBe("Definitions 3.1\u20133.2 of");
+    expect(texTypography("a --- b")).toBe("a \u2014 b");
+    expect(texTypography("tie~here")).toBe("tie\u00a0here");
+    expect(texTypography("tie~here", { ties: false })).toBe("tie~here");
+    expect(texTypography("end. Next")).toBe("end. Next");
+  });
+
+  it("does not touch a docstring's Lean code span", () => {
+    // `inline` tokenises code spans before typography, and `\texttt` becomes
+    // <code>, which texTypography skips.
+    expect(renderTexLine("use `--flag` and `a~b`")).toContain("--flag");
+    expect(renderTexLine("use \\texttt{--flag}")).toContain("<code>--flag</code>");
+  });
+});
